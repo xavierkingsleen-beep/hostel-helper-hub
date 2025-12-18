@@ -24,6 +24,8 @@ const categories = [
   { value: "Cleaning", label: "🧹 Cleaning" },
   { value: "Food", label: "🍽️ Food" },
   { value: "Internet", label: "🌐 Internet" },
+  { value: "Ragging", label: "🚨 Ragging" },
+  { value: "Play Equipments", label: "🏀 Play Equipments" },
 ];
 
 // Demo complaints data
