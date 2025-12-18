@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Home, LogIn, UserPlus, MessageSquare, Shield, Clock } from "lucide-react";
+import { Home, LogIn, UserPlus, MessageSquare, Shield, Clock, ShieldCheck } from "lucide-react";
 
 const Index = () => {
   return (
@@ -46,13 +46,23 @@ const Index = () => {
               <Button asChild variant="default" className="flex-1" size="lg">
                 <Link to="/login">
                   <LogIn className="w-4 h-4" />
-                  Login
+                  Student Login
                 </Link>
               </Button>
               <Button asChild variant="outline" className="flex-1" size="lg">
                 <Link to="/register">
                   <UserPlus className="w-4 h-4" />
                   Register
+                </Link>
+              </Button>
+            </div>
+
+            {/* Admin Login Link */}
+            <div className="pt-2 border-t border-border">
+              <Button asChild variant="ghost" className="w-full" size="sm">
+                <Link to="/admin-login" className="text-muted-foreground hover:text-foreground">
+                  <ShieldCheck className="w-4 h-4 mr-2" />
+                  Admin Portal
                 </Link>
               </Button>
             </div>
