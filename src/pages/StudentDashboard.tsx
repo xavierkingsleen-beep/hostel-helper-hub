@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ComplaintCard } from "@/components/ComplaintCard";
+import { NoticeBoard } from "@/components/NoticeBoard";
 import { toast } from "@/hooks/use-toast";
 import { LogOut, Send, GraduationCap, Plus, List } from "lucide-react";
 
@@ -126,6 +126,11 @@ const StudentDashboard = () => {
             <LogOut className="w-4 h-4" />
             Logout
           </Button>
+        </div>
+
+        {/* Notice Board - Full Width */}
+        <div className="mb-6">
+          <NoticeBoard />
         </div>
 
         <div className="grid lg:grid-cols-2 gap-6">
