@@ -4,9 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { StatusBadge } from "@/components/StatusBadge";
+import { AdminNoticeManager } from "@/components/AdminNoticeManager";
 import { toast } from "@/hooks/use-toast";
-import { LogOut, Settings, ClipboardList, Users, CheckCircle, Clock } from "lucide-react";
+import { LogOut, Settings, ClipboardList, Users, CheckCircle, Clock, Bell } from "lucide-react";
 
 interface Complaint {
   id: string;
@@ -172,73 +174,93 @@ const AdminDashboard = () => {
           </Card>
         </div>
 
-        {/* Complaints Table */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <ClipboardList className="w-5 h-5 text-primary" />
-              All Complaints
-            </CardTitle>
-            <CardDescription>
-              View and manage all student complaints
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Student</TableHead>
-                    <TableHead>Room</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead className="min-w-[200px]">Description</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Action</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {complaints.map((complaint) => (
-                    <TableRow key={complaint.id} className="hover:bg-accent/50">
-                      <TableCell className="font-medium">{complaint.studentName}</TableCell>
-                      <TableCell>{complaint.roomNo}</TableCell>
-                      <TableCell>{complaint.category}</TableCell>
-                      <TableCell className="max-w-[250px] truncate">
-                        {complaint.description}
-                      </TableCell>
-                      <TableCell>
-                        <StatusBadge status={complaint.status} />
-                      </TableCell>
-                      <TableCell className="text-muted-foreground text-sm">
-                        {complaint.createdAt}
-                      </TableCell>
-                      <TableCell>
-                        <Select
-                          value={complaint.status}
-                          onValueChange={(value) =>
-                            handleStatusChange(
-                              complaint.id,
-                              value as "Pending" | "In Progress" | "Resolved"
-                            )
-                          }
-                        >
-                          <SelectTrigger className="w-[130px]">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Pending">Pending</SelectItem>
-                            <SelectItem value="In Progress">In Progress</SelectItem>
-                            <SelectItem value="Resolved">Resolved</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Tabs for Complaints and Notices */}
+        <Tabs defaultValue="complaints" className="w-full">
+          <TabsList className="mb-4">
+            <TabsTrigger value="complaints" className="flex items-center gap-2">
+              <ClipboardList className="w-4 h-4" />
+              Complaints
+            </TabsTrigger>
+            <TabsTrigger value="notices" className="flex items-center gap-2">
+              <Bell className="w-4 h-4" />
+              Notice Board
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="complaints">
+            {/* Complaints Table */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <ClipboardList className="w-5 h-5 text-primary" />
+                  All Complaints
+                </CardTitle>
+                <CardDescription>
+                  View and manage all student complaints
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Student</TableHead>
+                        <TableHead>Room</TableHead>
+                        <TableHead>Category</TableHead>
+                        <TableHead className="min-w-[200px]">Description</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Action</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {complaints.map((complaint) => (
+                        <TableRow key={complaint.id} className="hover:bg-accent/50">
+                          <TableCell className="font-medium">{complaint.studentName}</TableCell>
+                          <TableCell>{complaint.roomNo}</TableCell>
+                          <TableCell>{complaint.category}</TableCell>
+                          <TableCell className="max-w-[250px] truncate">
+                            {complaint.description}
+                          </TableCell>
+                          <TableCell>
+                            <StatusBadge status={complaint.status} />
+                          </TableCell>
+                          <TableCell className="text-muted-foreground text-sm">
+                            {complaint.createdAt}
+                          </TableCell>
+                          <TableCell>
+                            <Select
+                              value={complaint.status}
+                              onValueChange={(value) =>
+                                handleStatusChange(
+                                  complaint.id,
+                                  value as "Pending" | "In Progress" | "Resolved"
+                                )
+                              }
+                            >
+                              <SelectTrigger className="w-[130px]">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="Pending">Pending</SelectItem>
+                                <SelectItem value="In Progress">In Progress</SelectItem>
+                                <SelectItem value="Resolved">Resolved</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="notices">
+            <AdminNoticeManager />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
