@@ -5,11 +5,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ComplaintCard } from "@/components/ComplaintCard";
 import { NoticeBoard } from "@/components/NoticeBoard";
 import { DashboardModulesGrid } from "@/components/DashboardModules";
+import { LeaveLetterForm } from "@/components/LeaveLetterForm";
 import { toast } from "@/hooks/use-toast";
-import { LogOut, Send, GraduationCap, Plus, List } from "lucide-react";
+import { LogOut, Send, GraduationCap, Plus, List, FileText, LayoutGrid } from "lucide-react";
 
 interface Complaint {
   id: string;
@@ -134,93 +136,119 @@ const StudentDashboard = () => {
           <NoticeBoard />
         </div>
 
-        {/* Dashboard Modules */}
-        <DashboardModulesGrid />
+        {/* Tabs for different sections */}
+        <Tabs defaultValue="dashboard" className="w-full">
+          <TabsList className="mb-6">
+            <TabsTrigger value="dashboard" className="flex items-center gap-2">
+              <LayoutGrid className="w-4 h-4" />
+              Dashboard
+            </TabsTrigger>
+            <TabsTrigger value="complaints" className="flex items-center gap-2">
+              <List className="w-4 h-4" />
+              Complaints
+            </TabsTrigger>
+            <TabsTrigger value="leave" className="flex items-center gap-2">
+              <FileText className="w-4 h-4" />
+              Leave Letter
+            </TabsTrigger>
+          </TabsList>
 
-        <div className="grid lg:grid-cols-2 gap-6">
-          {/* Raise Complaint Form */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Plus className="w-5 h-5 text-primary" />
-                Raise Complaint
-              </CardTitle>
-              <CardDescription>
-                Submit a new complaint for quick resolution
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="category">Category</Label>
-                  <Select value={category} onValueChange={setCategory}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.map((cat) => (
-                        <SelectItem key={cat.value} value={cat.value}>
-                          {cat.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="description">Description</Label>
-                  <Textarea
-                    id="description"
-                    placeholder="Describe your issue in detail..."
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    rows={4}
-                    className="resize-none"
-                  />
-                </div>
-                <Button type="submit" className="w-full" disabled={isSubmitting}>
-                  {isSubmitting ? (
-                    "Submitting..."
+          <TabsContent value="dashboard">
+            {/* Dashboard Modules */}
+            <DashboardModulesGrid />
+          </TabsContent>
+
+          <TabsContent value="complaints">
+            <div className="grid lg:grid-cols-2 gap-6">
+              {/* Raise Complaint Form */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Plus className="w-5 h-5 text-primary" />
+                    Raise Complaint
+                  </CardTitle>
+                  <CardDescription>
+                    Submit a new complaint for quick resolution
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <form onSubmit={handleSubmit} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="category">Category</Label>
+                      <Select value={category} onValueChange={setCategory}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {categories.map((cat) => (
+                            <SelectItem key={cat.value} value={cat.value}>
+                              {cat.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="description">Description</Label>
+                      <Textarea
+                        id="description"
+                        placeholder="Describe your issue in detail..."
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                        rows={4}
+                        className="resize-none"
+                      />
+                    </div>
+                    <Button type="submit" className="w-full" disabled={isSubmitting}>
+                      {isSubmitting ? (
+                        "Submitting..."
+                      ) : (
+                        <>
+                          <Send className="w-4 h-4" />
+                          Submit Complaint
+                        </>
+                      )}
+                    </Button>
+                  </form>
+                </CardContent>
+              </Card>
+
+              {/* My Complaints */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <List className="w-5 h-5 text-primary" />
+                    My Complaints
+                  </CardTitle>
+                  <CardDescription>
+                    Track the status of your submitted complaints
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3 max-h-[400px] overflow-y-auto">
+                  {complaints.length === 0 ? (
+                    <p className="text-center text-muted-foreground py-8">
+                      No complaints submitted yet.
+                    </p>
                   ) : (
-                    <>
-                      <Send className="w-4 h-4" />
-                      Submit Complaint
-                    </>
+                    complaints.map((complaint) => (
+                      <ComplaintCard
+                        key={complaint.id}
+                        category={complaint.category}
+                        description={complaint.description}
+                        status={complaint.status}
+                        createdAt={complaint.createdAt}
+                      />
+                    ))
                   )}
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
 
-          {/* My Complaints */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <List className="w-5 h-5 text-primary" />
-                My Complaints
-              </CardTitle>
-              <CardDescription>
-                Track the status of your submitted complaints
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3 max-h-[400px] overflow-y-auto">
-              {complaints.length === 0 ? (
-                <p className="text-center text-muted-foreground py-8">
-                  No complaints submitted yet.
-                </p>
-              ) : (
-                complaints.map((complaint) => (
-                  <ComplaintCard
-                    key={complaint.id}
-                    category={complaint.category}
-                    description={complaint.description}
-                    status={complaint.status}
-                    createdAt={complaint.createdAt}
-                  />
-                ))
-              )}
-            </CardContent>
-          </Card>
-        </div>
+          <TabsContent value="leave">
+            <LeaveLetterForm />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
