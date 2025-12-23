@@ -7,9 +7,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { StatusBadge } from "@/components/StatusBadge";
 import { AdminNoticeManager } from "@/components/AdminNoticeManager";
-import { DashboardModulesGrid } from "@/components/DashboardModules";
+import { AdminModuleEditor } from "@/components/AdminModuleEditor";
+import { AdminLeaveManager } from "@/components/AdminLeaveManager";
 import { toast } from "@/hooks/use-toast";
-import { LogOut, Settings, ClipboardList, Users, CheckCircle, Clock, Bell, LayoutGrid } from "lucide-react";
+import { LogOut, Settings, ClipboardList, Users, CheckCircle, Clock, Bell, LayoutGrid, FileText } from "lucide-react";
 
 interface Complaint {
   id: string;
@@ -175,7 +176,7 @@ const AdminDashboard = () => {
           </Card>
         </div>
 
-        {/* Tabs for Complaints, Notices, and Modules */}
+        {/* Tabs for Complaints, Notices, Modules, and Leave */}
         <Tabs defaultValue="complaints" className="w-full">
           <TabsList className="mb-4">
             <TabsTrigger value="complaints" className="flex items-center gap-2">
@@ -188,7 +189,11 @@ const AdminDashboard = () => {
             </TabsTrigger>
             <TabsTrigger value="modules" className="flex items-center gap-2">
               <LayoutGrid className="w-4 h-4" />
-              Modules
+              Edit Modules
+            </TabsTrigger>
+            <TabsTrigger value="leave" className="flex items-center gap-2">
+              <FileText className="w-4 h-4" />
+              Leave Letters
             </TabsTrigger>
           </TabsList>
 
@@ -267,7 +272,11 @@ const AdminDashboard = () => {
           </TabsContent>
 
           <TabsContent value="modules">
-            <DashboardModulesGrid />
+            <AdminModuleEditor />
+          </TabsContent>
+
+          <TabsContent value="leave">
+            <AdminLeaveManager />
           </TabsContent>
         </Tabs>
       </div>
