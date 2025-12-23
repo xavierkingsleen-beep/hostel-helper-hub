@@ -7,8 +7,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { StatusBadge } from "@/components/StatusBadge";
 import { AdminNoticeManager } from "@/components/AdminNoticeManager";
+import { DashboardModulesGrid } from "@/components/DashboardModules";
 import { toast } from "@/hooks/use-toast";
-import { LogOut, Settings, ClipboardList, Users, CheckCircle, Clock, Bell } from "lucide-react";
+import { LogOut, Settings, ClipboardList, Users, CheckCircle, Clock, Bell, LayoutGrid } from "lucide-react";
 
 interface Complaint {
   id: string;
@@ -174,7 +175,7 @@ const AdminDashboard = () => {
           </Card>
         </div>
 
-        {/* Tabs for Complaints and Notices */}
+        {/* Tabs for Complaints, Notices, and Modules */}
         <Tabs defaultValue="complaints" className="w-full">
           <TabsList className="mb-4">
             <TabsTrigger value="complaints" className="flex items-center gap-2">
@@ -184,6 +185,10 @@ const AdminDashboard = () => {
             <TabsTrigger value="notices" className="flex items-center gap-2">
               <Bell className="w-4 h-4" />
               Notice Board
+            </TabsTrigger>
+            <TabsTrigger value="modules" className="flex items-center gap-2">
+              <LayoutGrid className="w-4 h-4" />
+              Modules
             </TabsTrigger>
           </TabsList>
 
@@ -259,6 +264,10 @@ const AdminDashboard = () => {
 
           <TabsContent value="notices">
             <AdminNoticeManager />
+          </TabsContent>
+
+          <TabsContent value="modules">
+            <DashboardModulesGrid />
           </TabsContent>
         </Tabs>
       </div>

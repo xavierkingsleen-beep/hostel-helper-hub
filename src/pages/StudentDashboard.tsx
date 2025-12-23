@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ComplaintCard } from "@/components/ComplaintCard";
 import { NoticeBoard } from "@/components/NoticeBoard";
+import { DashboardModulesGrid } from "@/components/DashboardModules";
 import { toast } from "@/hooks/use-toast";
 import { LogOut, Send, GraduationCap, Plus, List } from "lucide-react";
 
@@ -132,6 +133,9 @@ const StudentDashboard = () => {
         <div className="mb-6">
           <NoticeBoard />
         </div>
+
+        {/* Dashboard Modules */}
+        <DashboardModulesGrid />
 
         <div className="grid lg:grid-cols-2 gap-6">
           {/* Raise Complaint Form */}
