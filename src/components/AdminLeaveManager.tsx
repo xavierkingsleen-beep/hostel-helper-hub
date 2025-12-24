@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -14,92 +13,24 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-
-interface LeaveApplication {
-  id: string;
-  studentName: string;
-  roomNo: string;
-  leaveType: string;
-  fromDate: string;
-  toDate: string;
-  reason: string;
-  parentContact: string;
-  status: "Pending" | "Approved" | "Rejected";
-  submittedAt: string;
-}
-
-// Demo leave applications
-const demoLeaveApplications: LeaveApplication[] = [
-  {
-    id: "1",
-    studentName: "John Doe",
-    roomNo: "A-101",
-    leaveType: "Home Visit",
-    fromDate: "2024-12-20",
-    toDate: "2024-12-25",
-    reason: "Going home for Christmas vacation to celebrate with family.",
-    parentContact: "+91 98765 43210",
-    status: "Pending",
-    submittedAt: "Dec 15, 2024",
-  },
-  {
-    id: "2",
-    studentName: "Jane Smith",
-    roomNo: "B-205",
-    leaveType: "Medical",
-    fromDate: "2024-12-18",
-    toDate: "2024-12-19",
-    reason: "Need to visit the hospital for regular health checkup.",
-    parentContact: "+91 98765 43211",
-    status: "Approved",
-    submittedAt: "Dec 14, 2024",
-  },
-  {
-    id: "3",
-    studentName: "Mike Johnson",
-    roomNo: "C-302",
-    leaveType: "Family Emergency",
-    fromDate: "2024-12-16",
-    toDate: "2024-12-17",
-    reason: "Family emergency - grandmother is hospitalized.",
-    parentContact: "+91 98765 43212",
-    status: "Approved",
-    submittedAt: "Dec 15, 2024",
-  },
-  {
-    id: "4",
-    studentName: "Sarah Wilson",
-    roomNo: "A-115",
-    leaveType: "Academic",
-    fromDate: "2024-12-22",
-    toDate: "2024-12-23",
-    reason: "Attending inter-college competition at nearby university.",
-    parentContact: "+91 98765 43213",
-    status: "Pending",
-    submittedAt: "Dec 16, 2024",
-  },
-  {
-    id: "5",
-    studentName: "Alex Brown",
-    roomNo: "D-410",
-    leaveType: "Personal",
-    fromDate: "2024-12-24",
-    toDate: "2024-12-26",
-    reason: "Personal work - need to renew passport and documents.",
-    parentContact: "+91 98765 43214",
-    status: "Rejected",
-    submittedAt: "Dec 13, 2024",
-  },
-];
+import { useLeaveApplications, LeaveApplication } from "@/hooks/useLeaveApplications";
+import { format } from "date-fns";
 
 export const AdminLeaveManager = () => {
-  const [applications, setApplications] = useState<LeaveApplication[]>(demoLeaveApplications);
-  const [selectedApp, setSelectedApp] = useState<LeaveApplication | null>(null);
+  const { applications, isLoading, updateApplicationStatus } = useLeaveApplications();
 
-  const handleStatusChange = (id: string, newStatus: "Pending" | "Approved" | "Rejected") => {
-    setApplications(
-      applications.map((app) => (app.id === id ? { ...app, status: newStatus } : app))
-    );
+  const handleStatusChange = async (id: string, newStatus: "Pending" | "Approved" | "Rejected") => {
+    const { error } = await updateApplicationStatus(id, newStatus);
+    
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update status",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     toast({
       title: "Status Updated",
       description: `Leave application ${newStatus.toLowerCase()}`,
@@ -117,12 +48,28 @@ export const AdminLeaveManager = () => {
     }
   };
 
+  const formatDate = (dateStr: string) => {
+    try {
+      return format(new Date(dateStr), "MMM d, yyyy");
+    } catch {
+      return dateStr;
+    }
+  };
+
   const stats = {
     total: applications.length,
     pending: applications.filter((a) => a.status === "Pending").length,
     approved: applications.filter((a) => a.status === "Approved").length,
     rejected: applications.filter((a) => a.status === "Rejected").length,
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -194,106 +141,108 @@ export const AdminLeaveManager = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Student</TableHead>
-                  <TableHead>Room</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Duration</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Submitted</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {applications.map((app) => (
-                  <TableRow key={app.id} className="hover:bg-accent/50">
-                    <TableCell className="font-medium">{app.studentName}</TableCell>
-                    <TableCell>{app.roomNo}</TableCell>
-                    <TableCell>{app.leaveType}</TableCell>
-                    <TableCell className="text-sm">
-                      {app.fromDate} to {app.toDate}
-                    </TableCell>
-                    <TableCell>{getStatusBadge(app.status)}</TableCell>
-                    <TableCell className="text-muted-foreground text-sm">
-                      {app.submittedAt}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => setSelectedApp(app)}
-                            >
-                              <Eye className="w-4 h-4" />
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent>
-                            <DialogHeader>
-                              <DialogTitle>Leave Application Details</DialogTitle>
-                              <DialogDescription>
-                                {app.studentName} - {app.roomNo}
-                              </DialogDescription>
-                            </DialogHeader>
-                            <div className="space-y-4">
-                              <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                  <p className="text-sm text-muted-foreground">Leave Type</p>
-                                  <p className="font-medium">{app.leaveType}</p>
-                                </div>
-                                <div>
-                                  <p className="text-sm text-muted-foreground">Status</p>
-                                  {getStatusBadge(app.status)}
-                                </div>
-                                <div>
-                                  <p className="text-sm text-muted-foreground">From</p>
-                                  <p className="font-medium">{app.fromDate}</p>
-                                </div>
-                                <div>
-                                  <p className="text-sm text-muted-foreground">To</p>
-                                  <p className="font-medium">{app.toDate}</p>
-                                </div>
-                              </div>
-                              <div>
-                                <p className="text-sm text-muted-foreground">Parent Contact</p>
-                                <p className="font-medium">{app.parentContact}</p>
-                              </div>
-                              <div>
-                                <p className="text-sm text-muted-foreground">Reason</p>
-                                <p className="font-medium">{app.reason}</p>
-                              </div>
-                            </div>
-                          </DialogContent>
-                        </Dialog>
-                        <Select
-                          value={app.status}
-                          onValueChange={(value) =>
-                            handleStatusChange(
-                              app.id,
-                              value as "Pending" | "Approved" | "Rejected"
-                            )
-                          }
-                        >
-                          <SelectTrigger className="w-[120px]">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Pending">Pending</SelectItem>
-                            <SelectItem value="Approved">Approved</SelectItem>
-                            <SelectItem value="Rejected">Rejected</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </TableCell>
+          {applications.length === 0 ? (
+            <p className="text-center text-muted-foreground py-8">
+              No leave applications yet.
+            </p>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Student</TableHead>
+                    <TableHead>Room</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Duration</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Submitted</TableHead>
+                    <TableHead>Actions</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                </TableHeader>
+                <TableBody>
+                  {applications.map((app) => (
+                    <TableRow key={app.id} className="hover:bg-accent/50">
+                      <TableCell className="font-medium">{app.student_name}</TableCell>
+                      <TableCell>{app.room_number || "-"}</TableCell>
+                      <TableCell>{app.leave_type}</TableCell>
+                      <TableCell className="text-sm">
+                        {formatDate(app.start_date)} to {formatDate(app.end_date)}
+                      </TableCell>
+                      <TableCell>{getStatusBadge(app.status)}</TableCell>
+                      <TableCell className="text-muted-foreground text-sm">
+                        {formatDate(app.created_at)}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button variant="ghost" size="sm">
+                                <Eye className="w-4 h-4" />
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent>
+                              <DialogHeader>
+                                <DialogTitle>Leave Application Details</DialogTitle>
+                                <DialogDescription>
+                                  {app.student_name} - {app.room_number || "No room"}
+                                </DialogDescription>
+                              </DialogHeader>
+                              <div className="space-y-4">
+                                <div className="grid grid-cols-2 gap-4">
+                                  <div>
+                                    <p className="text-sm text-muted-foreground">Leave Type</p>
+                                    <p className="font-medium">{app.leave_type}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-sm text-muted-foreground">Status</p>
+                                    {getStatusBadge(app.status)}
+                                  </div>
+                                  <div>
+                                    <p className="text-sm text-muted-foreground">From</p>
+                                    <p className="font-medium">{formatDate(app.start_date)}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-sm text-muted-foreground">To</p>
+                                    <p className="font-medium">{formatDate(app.end_date)}</p>
+                                  </div>
+                                </div>
+                                <div>
+                                  <p className="text-sm text-muted-foreground">Parent Contact</p>
+                                  <p className="font-medium">{app.parent_contact || "-"}</p>
+                                </div>
+                                <div>
+                                  <p className="text-sm text-muted-foreground">Reason</p>
+                                  <p className="font-medium">{app.reason}</p>
+                                </div>
+                              </div>
+                            </DialogContent>
+                          </Dialog>
+                          <Select
+                            value={app.status}
+                            onValueChange={(value) =>
+                              handleStatusChange(
+                                app.id,
+                                value as "Pending" | "Approved" | "Rejected"
+                              )
+                            }
+                          >
+                            <SelectTrigger className="w-[120px]">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Pending">Pending</SelectItem>
+                              <SelectItem value="Approved">Approved</SelectItem>
+                              <SelectItem value="Rejected">Rejected</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

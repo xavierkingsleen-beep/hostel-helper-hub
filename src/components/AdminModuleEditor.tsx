@@ -1,11 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { toast } from "@/hooks/use-toast";
 import { 
   UtensilsCrossed, 
   Phone, 
@@ -17,109 +15,97 @@ import {
   Trash2,
   Edit2
 } from "lucide-react";
-
-// Types for module data
-interface MessMeal {
-  time: string;
-  items: string[];
-}
-
-interface MessMenuData {
-  breakfast: MessMeal;
-  lunch: MessMeal;
-  snacks: MessMeal;
-  dinner: MessMeal;
-}
-
-interface EmergencyContact {
-  name: string;
-  phone: string;
-  available: string;
-}
-
-interface HostelRule {
-  rule: string;
-  priority: "high" | "medium" | "low";
-}
-
-interface QuickLink {
-  name: string;
-  url: string;
-  category: string;
-}
-
-interface UpcomingEvent {
-  name: string;
-  date: string;
-  type: "Event" | "Payment" | "Notice";
-}
-
-// Default data
-const defaultMessMenu: MessMenuData = {
-  breakfast: { time: "7:30 AM - 9:00 AM", items: ["Idli/Dosa", "Chutney", "Sambar", "Tea/Coffee"] },
-  lunch: { time: "12:30 PM - 2:00 PM", items: ["Rice", "Dal", "Sabzi", "Roti", "Salad"] },
-  snacks: { time: "5:00 PM - 6:00 PM", items: ["Samosa", "Tea", "Biscuits"] },
-  dinner: { time: "7:30 PM - 9:00 PM", items: ["Rice", "Dal", "Paneer/Chicken", "Roti", "Sweet"] },
-};
-
-const defaultContacts: EmergencyContact[] = [
-  { name: "Hostel Warden", phone: "+91 98765 43210", available: "24/7" },
-  { name: "Security Office", phone: "+91 98765 43211", available: "24/7" },
-  { name: "Medical Emergency", phone: "+91 98765 43212", available: "24/7" },
-  { name: "Maintenance", phone: "+91 98765 43213", available: "8AM-8PM" },
-  { name: "Mess Manager", phone: "+91 98765 43214", available: "7AM-10PM" },
-];
-
-const defaultRules: HostelRule[] = [
-  { rule: "Gate closes at 10:00 PM", priority: "high" },
-  { rule: "Visitors allowed till 6:00 PM only", priority: "medium" },
-  { rule: "No loud music after 9:00 PM", priority: "medium" },
-  { rule: "WiFi password changes every month", priority: "low" },
-  { rule: "Report water leakage immediately", priority: "high" },
-];
-
-const defaultLinks: QuickLink[] = [
-  { name: "Download ID Card", url: "#", category: "Documents" },
-  { name: "Fee Payment Portal", url: "#", category: "Payment" },
-  { name: "Leave Application", url: "#", category: "Forms" },
-  { name: "Room Change Request", url: "#", category: "Forms" },
-  { name: "Hostel Guidelines PDF", url: "#", category: "Documents" },
-];
-
-const defaultEvents: UpcomingEvent[] = [
-  { name: "Hostel Day Celebration", date: "Dec 25, 2024", type: "Event" },
-  { name: "Mess Bill Due", date: "Dec 31, 2024", type: "Payment" },
-  { name: "Room Inspection", date: "Jan 5, 2025", type: "Notice" },
-  { name: "Cultural Night", date: "Jan 10, 2025", type: "Event" },
-  { name: "Semester Fee Due", date: "Jan 15, 2025", type: "Payment" },
-];
+import { useModules, MessMenuItem, EmergencyContact, HostelRule, QuickLink, EventItem } from "@/hooks/useModules";
 
 export const AdminModuleEditor = () => {
-  const [messMenu, setMessMenu] = useState<MessMenuData>(defaultMessMenu);
-  const [contacts, setContacts] = useState<EmergencyContact[]>(defaultContacts);
-  const [rules, setRules] = useState<HostelRule[]>(defaultRules);
-  const [links, setLinks] = useState<QuickLink[]>(defaultLinks);
-  const [events, setEvents] = useState<UpcomingEvent[]>(defaultEvents);
+  const { 
+    messMenu, 
+    emergencyContacts, 
+    hostelRules, 
+    quickLinks, 
+    events, 
+    isLoading,
+    updateMessMenu,
+    saveEmergencyContacts,
+    saveHostelRules,
+    saveQuickLinks,
+    saveEvents
+  } = useModules();
 
-  const handleSaveMessMenu = () => {
-    toast({ title: "Mess Menu Updated", description: "Changes saved successfully" });
+  // Local state for editing
+  const [localMessMenu, setLocalMessMenu] = useState<MessMenuItem[]>([]);
+  const [localContacts, setLocalContacts] = useState<{ name: string; role: string; phone: string }[]>([]);
+  const [localRules, setLocalRules] = useState<{ rule: string }[]>([]);
+  const [localLinks, setLocalLinks] = useState<{ title: string; url: string; icon: string }[]>([]);
+  const [localEvents, setLocalEvents] = useState<{ title: string; event_date: string; event_time: string; location: string }[]>([]);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Initialize local state from database
+  useEffect(() => {
+    if (messMenu.length > 0) setLocalMessMenu(messMenu);
+    if (emergencyContacts.length > 0) {
+      setLocalContacts(emergencyContacts.map(c => ({ name: c.name, role: c.role, phone: c.phone })));
+    }
+    if (hostelRules.length > 0) {
+      setLocalRules(hostelRules.map(r => ({ rule: r.rule })));
+    }
+    if (quickLinks.length > 0) {
+      setLocalLinks(quickLinks.map(l => ({ title: l.title, url: l.url, icon: l.icon })));
+    }
+    if (events.length > 0) {
+      setLocalEvents(events.map(e => ({ 
+        title: e.title, 
+        event_date: e.event_date, 
+        event_time: e.event_time || "", 
+        location: e.location || "" 
+      })));
+    }
+  }, [messMenu, emergencyContacts, hostelRules, quickLinks, events]);
+
+  const handleSaveMessMenu = async () => {
+    setIsSaving(true);
+    await updateMessMenu(localMessMenu);
+    setIsSaving(false);
   };
 
-  const handleSaveContacts = () => {
-    toast({ title: "Emergency Contacts Updated", description: "Changes saved successfully" });
+  const handleSaveContacts = async () => {
+    setIsSaving(true);
+    await saveEmergencyContacts(localContacts.filter(c => c.name && c.phone));
+    setIsSaving(false);
   };
 
-  const handleSaveRules = () => {
-    toast({ title: "Hostel Rules Updated", description: "Changes saved successfully" });
+  const handleSaveRules = async () => {
+    setIsSaving(true);
+    await saveHostelRules(localRules.filter(r => r.rule));
+    setIsSaving(false);
   };
 
-  const handleSaveLinks = () => {
-    toast({ title: "Quick Links Updated", description: "Changes saved successfully" });
+  const handleSaveLinks = async () => {
+    setIsSaving(true);
+    await saveQuickLinks(localLinks.filter(l => l.title && l.url));
+    setIsSaving(false);
   };
 
-  const handleSaveEvents = () => {
-    toast({ title: "Events Updated", description: "Changes saved successfully" });
+  const handleSaveEvents = async () => {
+    setIsSaving(true);
+    await saveEvents(localEvents.filter(e => e.title && e.event_date).map(e => ({
+      title: e.title,
+      event_date: e.event_date,
+      event_time: e.event_time || null,
+      location: e.location || null
+    })));
+    setIsSaving(false);
   };
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardContent className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
@@ -156,52 +142,61 @@ export const AdminModuleEditor = () => {
 
           {/* Mess Menu Editor */}
           <TabsContent value="mess" className="space-y-4">
-            {(Object.keys(messMenu) as Array<keyof MessMenuData>).map((meal) => (
-              <div key={meal} className="border rounded-lg p-4 space-y-3">
-                <Label className="capitalize font-semibold">{meal}</Label>
-                <div className="grid grid-cols-2 gap-3">
+            {localMessMenu.map((item, index) => (
+              <div key={item.id || index} className="border rounded-lg p-4 space-y-3">
+                <Label className="font-semibold">{item.day}</Label>
+                <div className="grid grid-cols-3 gap-3">
                   <div>
-                    <Label className="text-xs text-muted-foreground">Time</Label>
+                    <Label className="text-xs text-muted-foreground">Breakfast</Label>
                     <Input
-                      value={messMenu[meal].time}
-                      onChange={(e) =>
-                        setMessMenu({
-                          ...messMenu,
-                          [meal]: { ...messMenu[meal], time: e.target.value },
-                        })
-                      }
+                      value={item.breakfast}
+                      onChange={(e) => {
+                        const updated = [...localMessMenu];
+                        updated[index] = { ...updated[index], breakfast: e.target.value };
+                        setLocalMessMenu(updated);
+                      }}
                     />
                   </div>
                   <div>
-                    <Label className="text-xs text-muted-foreground">Items (comma separated)</Label>
+                    <Label className="text-xs text-muted-foreground">Lunch</Label>
                     <Input
-                      value={messMenu[meal].items.join(", ")}
-                      onChange={(e) =>
-                        setMessMenu({
-                          ...messMenu,
-                          [meal]: { ...messMenu[meal], items: e.target.value.split(", ") },
-                        })
-                      }
+                      value={item.lunch}
+                      onChange={(e) => {
+                        const updated = [...localMessMenu];
+                        updated[index] = { ...updated[index], lunch: e.target.value };
+                        setLocalMessMenu(updated);
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Dinner</Label>
+                    <Input
+                      value={item.dinner}
+                      onChange={(e) => {
+                        const updated = [...localMessMenu];
+                        updated[index] = { ...updated[index], dinner: e.target.value };
+                        setLocalMessMenu(updated);
+                      }}
                     />
                   </div>
                 </div>
               </div>
             ))}
-            <Button onClick={handleSaveMessMenu} className="w-full">
-              <Save className="w-4 h-4 mr-2" /> Save Mess Menu
+            <Button onClick={handleSaveMessMenu} className="w-full" disabled={isSaving}>
+              <Save className="w-4 h-4 mr-2" /> {isSaving ? "Saving..." : "Save Mess Menu"}
             </Button>
           </TabsContent>
 
           {/* Emergency Contacts Editor */}
           <TabsContent value="contacts" className="space-y-4">
-            {contacts.map((contact, index) => (
+            {localContacts.map((contact, index) => (
               <div key={index} className="border rounded-lg p-4 space-y-3">
                 <div className="flex justify-between items-center">
                   <Label className="font-semibold">Contact {index + 1}</Label>
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => setContacts(contacts.filter((_, i) => i !== index))}
+                    onClick={() => setLocalContacts(localContacts.filter((_, i) => i !== index))}
                   >
                     <Trash2 className="w-4 h-4 text-destructive" />
                   </Button>
@@ -211,27 +206,27 @@ export const AdminModuleEditor = () => {
                     placeholder="Name"
                     value={contact.name}
                     onChange={(e) => {
-                      const updated = [...contacts];
-                      updated[index].name = e.target.value;
-                      setContacts(updated);
+                      const updated = [...localContacts];
+                      updated[index] = { ...updated[index], name: e.target.value };
+                      setLocalContacts(updated);
+                    }}
+                  />
+                  <Input
+                    placeholder="Role"
+                    value={contact.role}
+                    onChange={(e) => {
+                      const updated = [...localContacts];
+                      updated[index] = { ...updated[index], role: e.target.value };
+                      setLocalContacts(updated);
                     }}
                   />
                   <Input
                     placeholder="Phone"
                     value={contact.phone}
                     onChange={(e) => {
-                      const updated = [...contacts];
-                      updated[index].phone = e.target.value;
-                      setContacts(updated);
-                    }}
-                  />
-                  <Input
-                    placeholder="Available"
-                    value={contact.available}
-                    onChange={(e) => {
-                      const updated = [...contacts];
-                      updated[index].available = e.target.value;
-                      setContacts(updated);
+                      const updated = [...localContacts];
+                      updated[index] = { ...updated[index], phone: e.target.value };
+                      setLocalContacts(updated);
                     }}
                   />
                 </div>
@@ -239,110 +234,84 @@ export const AdminModuleEditor = () => {
             ))}
             <Button
               variant="outline"
-              onClick={() => setContacts([...contacts, { name: "", phone: "", available: "" }])}
+              onClick={() => setLocalContacts([...localContacts, { name: "", role: "", phone: "" }])}
               className="w-full"
             >
               <Plus className="w-4 h-4 mr-2" /> Add Contact
             </Button>
-            <Button onClick={handleSaveContacts} className="w-full">
-              <Save className="w-4 h-4 mr-2" /> Save Contacts
+            <Button onClick={handleSaveContacts} className="w-full" disabled={isSaving}>
+              <Save className="w-4 h-4 mr-2" /> {isSaving ? "Saving..." : "Save Contacts"}
             </Button>
           </TabsContent>
 
           {/* Hostel Rules Editor */}
           <TabsContent value="rules" className="space-y-4">
-            {rules.map((rule, index) => (
+            {localRules.map((rule, index) => (
               <div key={index} className="border rounded-lg p-4 space-y-3">
                 <div className="flex justify-between items-center">
                   <Label className="font-semibold">Rule {index + 1}</Label>
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => setRules(rules.filter((_, i) => i !== index))}
+                    onClick={() => setLocalRules(localRules.filter((_, i) => i !== index))}
                   >
                     <Trash2 className="w-4 h-4 text-destructive" />
                   </Button>
                 </div>
-                <div className="grid grid-cols-3 gap-3">
-                  <div className="col-span-2">
-                    <Input
-                      placeholder="Rule"
-                      value={rule.rule}
-                      onChange={(e) => {
-                        const updated = [...rules];
-                        updated[index].rule = e.target.value;
-                        setRules(updated);
-                      }}
-                    />
-                  </div>
-                  <select
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                    value={rule.priority}
-                    onChange={(e) => {
-                      const updated = [...rules];
-                      updated[index].priority = e.target.value as "high" | "medium" | "low";
-                      setRules(updated);
-                    }}
-                  >
-                    <option value="high">High</option>
-                    <option value="medium">Medium</option>
-                    <option value="low">Low</option>
-                  </select>
-                </div>
+                <Input
+                  placeholder="Rule"
+                  value={rule.rule}
+                  onChange={(e) => {
+                    const updated = [...localRules];
+                    updated[index] = { rule: e.target.value };
+                    setLocalRules(updated);
+                  }}
+                />
               </div>
             ))}
             <Button
               variant="outline"
-              onClick={() => setRules([...rules, { rule: "", priority: "medium" }])}
+              onClick={() => setLocalRules([...localRules, { rule: "" }])}
               className="w-full"
             >
               <Plus className="w-4 h-4 mr-2" /> Add Rule
             </Button>
-            <Button onClick={handleSaveRules} className="w-full">
-              <Save className="w-4 h-4 mr-2" /> Save Rules
+            <Button onClick={handleSaveRules} className="w-full" disabled={isSaving}>
+              <Save className="w-4 h-4 mr-2" /> {isSaving ? "Saving..." : "Save Rules"}
             </Button>
           </TabsContent>
 
           {/* Quick Links Editor */}
           <TabsContent value="links" className="space-y-4">
-            {links.map((link, index) => (
+            {localLinks.map((link, index) => (
               <div key={index} className="border rounded-lg p-4 space-y-3">
                 <div className="flex justify-between items-center">
                   <Label className="font-semibold">Link {index + 1}</Label>
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => setLinks(links.filter((_, i) => i !== index))}
+                    onClick={() => setLocalLinks(localLinks.filter((_, i) => i !== index))}
                   >
                     <Trash2 className="w-4 h-4 text-destructive" />
                   </Button>
                 </div>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-2 gap-3">
                   <Input
-                    placeholder="Name"
-                    value={link.name}
+                    placeholder="Title"
+                    value={link.title}
                     onChange={(e) => {
-                      const updated = [...links];
-                      updated[index].name = e.target.value;
-                      setLinks(updated);
+                      const updated = [...localLinks];
+                      updated[index] = { ...updated[index], title: e.target.value };
+                      setLocalLinks(updated);
                     }}
                   />
                   <Input
                     placeholder="URL"
                     value={link.url}
                     onChange={(e) => {
-                      const updated = [...links];
-                      updated[index].url = e.target.value;
-                      setLinks(updated);
-                    }}
-                  />
-                  <Input
-                    placeholder="Category"
-                    value={link.category}
-                    onChange={(e) => {
-                      const updated = [...links];
-                      updated[index].category = e.target.value;
-                      setLinks(updated);
+                      const updated = [...localLinks];
+                      updated[index] = { ...updated[index], url: e.target.value };
+                      setLocalLinks(updated);
                     }}
                   />
                 </div>
@@ -350,74 +319,79 @@ export const AdminModuleEditor = () => {
             ))}
             <Button
               variant="outline"
-              onClick={() => setLinks([...links, { name: "", url: "", category: "" }])}
+              onClick={() => setLocalLinks([...localLinks, { title: "", url: "", icon: "Link" }])}
               className="w-full"
             >
               <Plus className="w-4 h-4 mr-2" /> Add Link
             </Button>
-            <Button onClick={handleSaveLinks} className="w-full">
-              <Save className="w-4 h-4 mr-2" /> Save Links
+            <Button onClick={handleSaveLinks} className="w-full" disabled={isSaving}>
+              <Save className="w-4 h-4 mr-2" /> {isSaving ? "Saving..." : "Save Links"}
             </Button>
           </TabsContent>
 
           {/* Events Editor */}
           <TabsContent value="events" className="space-y-4">
-            {events.map((event, index) => (
+            {localEvents.map((event, index) => (
               <div key={index} className="border rounded-lg p-4 space-y-3">
                 <div className="flex justify-between items-center">
                   <Label className="font-semibold">Event {index + 1}</Label>
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => setEvents(events.filter((_, i) => i !== index))}
+                    onClick={() => setLocalEvents(localEvents.filter((_, i) => i !== index))}
                   >
                     <Trash2 className="w-4 h-4 text-destructive" />
                   </Button>
                 </div>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-2 gap-3">
                   <Input
-                    placeholder="Event Name"
-                    value={event.name}
+                    placeholder="Event Title"
+                    value={event.title}
                     onChange={(e) => {
-                      const updated = [...events];
-                      updated[index].name = e.target.value;
-                      setEvents(updated);
+                      const updated = [...localEvents];
+                      updated[index] = { ...updated[index], title: e.target.value };
+                      setLocalEvents(updated);
                     }}
                   />
                   <Input
-                    placeholder="Date"
-                    value={event.date}
+                    type="date"
+                    value={event.event_date}
                     onChange={(e) => {
-                      const updated = [...events];
-                      updated[index].date = e.target.value;
-                      setEvents(updated);
+                      const updated = [...localEvents];
+                      updated[index] = { ...updated[index], event_date: e.target.value };
+                      setLocalEvents(updated);
                     }}
                   />
-                  <select
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                    value={event.type}
+                  <Input
+                    placeholder="Time (e.g., 6:00 PM)"
+                    value={event.event_time}
                     onChange={(e) => {
-                      const updated = [...events];
-                      updated[index].type = e.target.value as "Event" | "Payment" | "Notice";
-                      setEvents(updated);
+                      const updated = [...localEvents];
+                      updated[index] = { ...updated[index], event_time: e.target.value };
+                      setLocalEvents(updated);
                     }}
-                  >
-                    <option value="Event">Event</option>
-                    <option value="Payment">Payment</option>
-                    <option value="Notice">Notice</option>
-                  </select>
+                  />
+                  <Input
+                    placeholder="Location"
+                    value={event.location}
+                    onChange={(e) => {
+                      const updated = [...localEvents];
+                      updated[index] = { ...updated[index], location: e.target.value };
+                      setLocalEvents(updated);
+                    }}
+                  />
                 </div>
               </div>
             ))}
             <Button
               variant="outline"
-              onClick={() => setEvents([...events, { name: "", date: "", type: "Event" }])}
+              onClick={() => setLocalEvents([...localEvents, { title: "", event_date: "", event_time: "", location: "" }])}
               className="w-full"
             >
               <Plus className="w-4 h-4 mr-2" /> Add Event
             </Button>
-            <Button onClick={handleSaveEvents} className="w-full">
-              <Save className="w-4 h-4 mr-2" /> Save Events
+            <Button onClick={handleSaveEvents} className="w-full" disabled={isSaving}>
+              <Save className="w-4 h-4 mr-2" /> {isSaving ? "Saving..." : "Save Events"}
             </Button>
           </TabsContent>
         </Tabs>
