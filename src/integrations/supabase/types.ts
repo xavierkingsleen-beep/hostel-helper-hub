@@ -14,16 +14,246 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      emergency_contacts: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          phone: string
+          role: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          phone: string
+          role: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          phone?: string
+          role?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
+      events: {
+        Row: {
+          created_at: string
+          event_date: string
+          event_time: string | null
+          id: string
+          location: string | null
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          event_date: string
+          event_time?: string | null
+          id?: string
+          location?: string | null
+          title: string
+        }
+        Update: {
+          created_at?: string
+          event_date?: string
+          event_time?: string | null
+          id?: string
+          location?: string | null
+          title?: string
+        }
+        Relationships: []
+      }
+      hostel_rules: {
+        Row: {
+          created_at: string
+          id: string
+          rule: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          rule: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          rule?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
+      leave_applications: {
+        Row: {
+          address_during_leave: string | null
+          created_at: string
+          end_date: string
+          id: string
+          leave_type: string
+          parent_contact: string | null
+          phone: string | null
+          reason: string
+          room_number: string | null
+          start_date: string
+          status: string
+          student_id: string
+          student_name: string
+          updated_at: string
+        }
+        Insert: {
+          address_during_leave?: string | null
+          created_at?: string
+          end_date: string
+          id?: string
+          leave_type: string
+          parent_contact?: string | null
+          phone?: string | null
+          reason: string
+          room_number?: string | null
+          start_date: string
+          status?: string
+          student_id: string
+          student_name: string
+          updated_at?: string
+        }
+        Update: {
+          address_during_leave?: string | null
+          created_at?: string
+          end_date?: string
+          id?: string
+          leave_type?: string
+          parent_contact?: string | null
+          phone?: string | null
+          reason?: string
+          room_number?: string | null
+          start_date?: string
+          status?: string
+          student_id?: string
+          student_name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      mess_menu: {
+        Row: {
+          breakfast: string
+          day: string
+          dinner: string
+          id: string
+          lunch: string
+          updated_at: string
+        }
+        Insert: {
+          breakfast?: string
+          day: string
+          dinner?: string
+          id?: string
+          lunch?: string
+          updated_at?: string
+        }
+        Update: {
+          breakfast?: string
+          day?: string
+          dinner?: string
+          id?: string
+          lunch?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          full_name: string
+          id: string
+          phone: string | null
+          room_number: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          full_name: string
+          id: string
+          phone?: string | null
+          room_number?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          full_name?: string
+          id?: string
+          phone?: string | null
+          room_number?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      quick_links: {
+        Row: {
+          created_at: string
+          icon: string
+          id: string
+          sort_order: number
+          title: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          icon?: string
+          id?: string
+          sort_order?: number
+          title: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          icon?: string
+          id?: string
+          sort_order?: number
+          title?: string
+          url?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "student"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +380,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "student"],
+    },
   },
 } as const
