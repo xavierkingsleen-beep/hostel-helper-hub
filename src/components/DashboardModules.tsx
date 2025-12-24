@@ -7,183 +7,294 @@ import {
   ExternalLink, 
   CalendarDays,
   Clock,
-  AlertTriangle,
-  Shield,
-  Wifi,
-  Droplets
 } from "lucide-react";
+import { useModules } from "@/hooks/useModules";
+import { format } from "date-fns";
 
 // Mess Menu Module
-const messMenuData = {
-  breakfast: { time: "7:30 AM - 9:00 AM", items: ["Idli/Dosa", "Chutney", "Sambar", "Tea/Coffee"] },
-  lunch: { time: "12:30 PM - 2:00 PM", items: ["Rice", "Dal", "Sabzi", "Roti", "Salad"] },
-  snacks: { time: "5:00 PM - 6:00 PM", items: ["Samosa", "Tea", "Biscuits"] },
-  dinner: { time: "7:30 PM - 9:00 PM", items: ["Rice", "Dal", "Paneer/Chicken", "Roti", "Sweet"] },
+export const MessMenuModule = () => {
+  const { messMenu, isLoading } = useModules();
+
+  const today = new Date().toLocaleDateString("en-US", { weekday: "long" });
+  const todayMenu = messMenu.find(m => m.day === today) || messMenu[0];
+
+  if (isLoading) {
+    return (
+      <Card className="h-full">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <UtensilsCrossed className="w-5 h-5 text-primary" />
+            Today's Mess Menu
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="flex items-center justify-center py-8">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="h-full">
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-lg">
+          <UtensilsCrossed className="w-5 h-5 text-primary" />
+          {todayMenu?.day || "Today"}'s Menu
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {todayMenu ? (
+          <>
+            <div className="space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="font-medium text-sm">Breakfast</span>
+                <span className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Clock className="w-3 h-3" />
+                  7:30 AM - 9:00 AM
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground">{todayMenu.breakfast}</p>
+            </div>
+            <div className="space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="font-medium text-sm">Lunch</span>
+                <span className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Clock className="w-3 h-3" />
+                  12:30 PM - 2:00 PM
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground">{todayMenu.lunch}</p>
+            </div>
+            <div className="space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="font-medium text-sm">Dinner</span>
+                <span className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Clock className="w-3 h-3" />
+                  7:30 PM - 9:00 PM
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground">{todayMenu.dinner}</p>
+            </div>
+          </>
+        ) : (
+          <p className="text-center text-muted-foreground py-4">No menu available</p>
+        )}
+      </CardContent>
+    </Card>
+  );
 };
 
-export const MessMenuModule = () => (
-  <Card className="h-full">
-    <CardHeader className="pb-3">
-      <CardTitle className="flex items-center gap-2 text-lg">
-        <UtensilsCrossed className="w-5 h-5 text-primary" />
-        Today's Mess Menu
-      </CardTitle>
-    </CardHeader>
-    <CardContent className="space-y-3">
-      {Object.entries(messMenuData).map(([meal, data]) => (
-        <div key={meal} className="space-y-1">
-          <div className="flex items-center justify-between">
-            <span className="font-medium capitalize text-sm">{meal}</span>
-            <span className="text-xs text-muted-foreground flex items-center gap-1">
-              <Clock className="w-3 h-3" />
-              {data.time}
-            </span>
-          </div>
-          <p className="text-xs text-muted-foreground">{data.items.join(" • ")}</p>
-        </div>
-      ))}
-    </CardContent>
-  </Card>
-);
-
 // Emergency Contacts Module
-const emergencyContacts = [
-  { name: "Hostel Warden", phone: "+91 98765 43210", available: "24/7" },
-  { name: "Security Office", phone: "+91 98765 43211", available: "24/7" },
-  { name: "Medical Emergency", phone: "+91 98765 43212", available: "24/7" },
-  { name: "Maintenance", phone: "+91 98765 43213", available: "8AM-8PM" },
-  { name: "Mess Manager", phone: "+91 98765 43214", available: "7AM-10PM" },
-];
+export const EmergencyContactsModule = () => {
+  const { emergencyContacts, isLoading } = useModules();
 
-export const EmergencyContactsModule = () => (
-  <Card className="h-full">
-    <CardHeader className="pb-3">
-      <CardTitle className="flex items-center gap-2 text-lg">
-        <Phone className="w-5 h-5 text-destructive" />
-        Emergency Contacts
-      </CardTitle>
-    </CardHeader>
-    <CardContent className="space-y-2">
-      {emergencyContacts.map((contact) => (
-        <div key={contact.name} className="flex items-center justify-between py-1.5 border-b border-border/50 last:border-0">
-          <div>
-            <p className="font-medium text-sm">{contact.name}</p>
-            <p className="text-xs text-muted-foreground">{contact.available}</p>
-          </div>
-          <a 
-            href={`tel:${contact.phone.replace(/\s/g, '')}`} 
-            className="text-sm text-primary hover:underline font-mono"
-          >
-            {contact.phone}
-          </a>
-        </div>
-      ))}
-    </CardContent>
-  </Card>
-);
+  if (isLoading) {
+    return (
+      <Card className="h-full">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Phone className="w-5 h-5 text-destructive" />
+            Emergency Contacts
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="flex items-center justify-center py-8">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="h-full">
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-lg">
+          <Phone className="w-5 h-5 text-destructive" />
+          Emergency Contacts
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-2">
+        {emergencyContacts.length === 0 ? (
+          <p className="text-center text-muted-foreground py-4">No contacts available</p>
+        ) : (
+          emergencyContacts.map((contact) => (
+            <div key={contact.id} className="flex items-center justify-between py-1.5 border-b border-border/50 last:border-0">
+              <div>
+                <p className="font-medium text-sm">{contact.name}</p>
+                <p className="text-xs text-muted-foreground">{contact.role}</p>
+              </div>
+              <a 
+                href={`tel:${contact.phone.replace(/\s/g, '')}`} 
+                className="text-sm text-primary hover:underline font-mono"
+              >
+                {contact.phone}
+              </a>
+            </div>
+          ))
+        )}
+      </CardContent>
+    </Card>
+  );
+};
 
 // Hostel Rules Module
-const hostelRules = [
-  { rule: "Gate closes at 10:00 PM", icon: Clock, priority: "high" },
-  { rule: "Visitors allowed till 6:00 PM only", icon: Shield, priority: "medium" },
-  { rule: "No loud music after 9:00 PM", icon: AlertTriangle, priority: "medium" },
-  { rule: "WiFi password changes every month", icon: Wifi, priority: "low" },
-  { rule: "Report water leakage immediately", icon: Droplets, priority: "high" },
-];
+export const HostelRulesModule = () => {
+  const { hostelRules, isLoading } = useModules();
 
-export const HostelRulesModule = () => (
-  <Card className="h-full">
-    <CardHeader className="pb-3">
-      <CardTitle className="flex items-center gap-2 text-lg">
-        <BookOpen className="w-5 h-5 text-primary" />
-        Hostel Rules & Guidelines
-      </CardTitle>
-    </CardHeader>
-    <CardContent className="space-y-2">
-      {hostelRules.map((item, index) => (
-        <div key={index} className="flex items-start gap-2 py-1.5">
-          <item.icon className={`w-4 h-4 mt-0.5 flex-shrink-0 ${
-            item.priority === 'high' ? 'text-destructive' : 
-            item.priority === 'medium' ? 'text-warning' : 'text-muted-foreground'
-          }`} />
-          <span className="text-sm">{item.rule}</span>
-        </div>
-      ))}
-    </CardContent>
-  </Card>
-);
+  if (isLoading) {
+    return (
+      <Card className="h-full">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <BookOpen className="w-5 h-5 text-primary" />
+            Hostel Rules
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="flex items-center justify-center py-8">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="h-full">
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-lg">
+          <BookOpen className="w-5 h-5 text-primary" />
+          Hostel Rules & Guidelines
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-2">
+        {hostelRules.length === 0 ? (
+          <p className="text-center text-muted-foreground py-4">No rules available</p>
+        ) : (
+          hostelRules.map((item, index) => (
+            <div key={item.id} className="flex items-start gap-2 py-1.5">
+              <span className="text-xs font-medium text-primary bg-primary/10 rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 mt-0.5">
+                {index + 1}
+              </span>
+              <span className="text-sm">{item.rule}</span>
+            </div>
+          ))
+        )}
+      </CardContent>
+    </Card>
+  );
+};
 
 // Quick Links Module
-const quickLinks = [
-  { name: "Download ID Card", url: "#", category: "Documents" },
-  { name: "Fee Payment Portal", url: "#", category: "Payment" },
-  { name: "Leave Application", url: "#", category: "Forms" },
-  { name: "Room Change Request", url: "#", category: "Forms" },
-  { name: "Hostel Guidelines PDF", url: "#", category: "Documents" },
-];
+export const QuickLinksModule = () => {
+  const { quickLinks, isLoading } = useModules();
 
-export const QuickLinksModule = () => (
-  <Card className="h-full">
-    <CardHeader className="pb-3">
-      <CardTitle className="flex items-center gap-2 text-lg">
-        <ExternalLink className="w-5 h-5 text-primary" />
-        Quick Links
-      </CardTitle>
-    </CardHeader>
-    <CardContent className="space-y-2">
-      {quickLinks.map((link) => (
-        <a
-          key={link.name}
-          href={link.url}
-          className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-accent/50 transition-colors group"
-        >
-          <span className="text-sm font-medium group-hover:text-primary transition-colors">
-            {link.name}
-          </span>
-          <Badge variant="secondary" className="text-xs">
-            {link.category}
-          </Badge>
-        </a>
-      ))}
-    </CardContent>
-  </Card>
-);
+  if (isLoading) {
+    return (
+      <Card className="h-full">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <ExternalLink className="w-5 h-5 text-primary" />
+            Quick Links
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="flex items-center justify-center py-8">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="h-full">
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-lg">
+          <ExternalLink className="w-5 h-5 text-primary" />
+          Quick Links
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-2">
+        {quickLinks.length === 0 ? (
+          <p className="text-center text-muted-foreground py-4">No links available</p>
+        ) : (
+          quickLinks.map((link) => (
+            <a
+              key={link.id}
+              href={link.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-accent/50 transition-colors group"
+            >
+              <span className="text-sm font-medium group-hover:text-primary transition-colors">
+                {link.title}
+              </span>
+              <ExternalLink className="w-4 h-4 text-muted-foreground" />
+            </a>
+          ))
+        )}
+      </CardContent>
+    </Card>
+  );
+};
 
 // Events Calendar Module
-const upcomingEvents = [
-  { name: "Hostel Day Celebration", date: "Dec 25, 2024", type: "Event" },
-  { name: "Mess Bill Due", date: "Dec 31, 2024", type: "Payment" },
-  { name: "Room Inspection", date: "Jan 5, 2025", type: "Notice" },
-  { name: "Cultural Night", date: "Jan 10, 2025", type: "Event" },
-  { name: "Semester Fee Due", date: "Jan 15, 2025", type: "Payment" },
-];
+export const EventsCalendarModule = () => {
+  const { events, isLoading } = useModules();
 
-export const EventsCalendarModule = () => (
-  <Card className="h-full">
-    <CardHeader className="pb-3">
-      <CardTitle className="flex items-center gap-2 text-lg">
-        <CalendarDays className="w-5 h-5 text-primary" />
-        Upcoming Events
-      </CardTitle>
-    </CardHeader>
-    <CardContent className="space-y-2">
-      {upcomingEvents.map((event, index) => (
-        <div key={index} className="flex items-center justify-between py-2 border-b border-border/50 last:border-0">
-          <div>
-            <p className="font-medium text-sm">{event.name}</p>
-            <p className="text-xs text-muted-foreground">{event.date}</p>
-          </div>
-          <Badge 
-            variant={event.type === 'Payment' ? 'destructive' : event.type === 'Event' ? 'default' : 'secondary'}
-            className="text-xs"
-          >
-            {event.type}
-          </Badge>
-        </div>
-      ))}
-    </CardContent>
-  </Card>
-);
+  const formatEventDate = (dateStr: string) => {
+    try {
+      return format(new Date(dateStr), "MMM d, yyyy");
+    } catch {
+      return dateStr;
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <Card className="h-full">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <CalendarDays className="w-5 h-5 text-primary" />
+            Upcoming Events
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="flex items-center justify-center py-8">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="h-full">
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-lg">
+          <CalendarDays className="w-5 h-5 text-primary" />
+          Upcoming Events
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-2">
+        {events.length === 0 ? (
+          <p className="text-center text-muted-foreground py-4">No upcoming events</p>
+        ) : (
+          events.map((event) => (
+            <div key={event.id} className="flex items-center justify-between py-2 border-b border-border/50 last:border-0">
+              <div>
+                <p className="font-medium text-sm">{event.title}</p>
+                <p className="text-xs text-muted-foreground">
+                  {formatEventDate(event.event_date)}
+                  {event.event_time && ` at ${event.event_time}`}
+                </p>
+              </div>
+              {event.location && (
+                <Badge variant="secondary" className="text-xs">
+                  {event.location}
+                </Badge>
+              )}
+            </div>
+          ))
+        )}
+      </CardContent>
+    </Card>
+  );
+};
 
 // Combined Modules Grid Component
 export const DashboardModulesGrid = () => (

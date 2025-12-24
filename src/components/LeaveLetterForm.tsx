@@ -6,25 +6,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
-import { FileText, Send, Calendar, Clock, CheckCircle } from "lucide-react";
+import { FileText, Send, Calendar, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-
-export interface LeaveApplication {
-  id: string;
-  studentName: string;
-  roomNo: string;
-  leaveType: string;
-  fromDate: string;
-  toDate: string;
-  reason: string;
-  parentContact: string;
-  status: "Pending" | "Approved" | "Rejected";
-  submittedAt: string;
-}
-
-interface LeaveLetterFormProps {
-  onSubmit?: (application: LeaveApplication) => void;
-}
+import { useLeaveApplications, LeaveApplication } from "@/hooks/useLeaveApplications";
+import { format } from "date-fns";
 
 const leaveTypes = [
   { value: "Home Visit", label: "🏠 Home Visit" },
@@ -34,44 +19,17 @@ const leaveTypes = [
   { value: "Personal", label: "👤 Personal Leave" },
 ];
 
-// Demo submitted applications
-const demoApplications: LeaveApplication[] = [
-  {
-    id: "1",
-    studentName: "John Doe",
-    roomNo: "A-101",
-    leaveType: "Home Visit",
-    fromDate: "2024-12-20",
-    toDate: "2024-12-25",
-    reason: "Going home for Christmas vacation",
-    parentContact: "+91 98765 43210",
-    status: "Approved",
-    submittedAt: "Dec 15, 2024",
-  },
-  {
-    id: "2",
-    studentName: "John Doe",
-    roomNo: "A-101",
-    leaveType: "Medical",
-    fromDate: "2024-12-10",
-    toDate: "2024-12-12",
-    reason: "Doctor's appointment and recovery",
-    parentContact: "+91 98765 43210",
-    status: "Pending",
-    submittedAt: "Dec 8, 2024",
-  },
-];
-
-export const LeaveLetterForm = ({ onSubmit }: LeaveLetterFormProps) => {
+export const LeaveLetterForm = () => {
   const [leaveType, setLeaveType] = useState("");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [reason, setReason] = useState("");
   const [parentContact, setParentContact] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [myApplications, setMyApplications] = useState<LeaveApplication[]>(demoApplications);
+  
+  const { applications, isLoading, submitApplication } = useLeaveApplications();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!leaveType || !fromDate || !toDate || !reason.trim() || !parentContact.trim()) {
@@ -85,40 +43,36 @@ export const LeaveLetterForm = ({ onSubmit }: LeaveLetterFormProps) => {
 
     setIsSubmitting(true);
 
-    setTimeout(() => {
-      const newApplication: LeaveApplication = {
-        id: Date.now().toString(),
-        studentName: "John Doe", // Would come from auth in real app
-        roomNo: "A-101",
-        leaveType,
-        fromDate,
-        toDate,
-        reason,
-        parentContact,
-        status: "Pending",
-        submittedAt: new Date().toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-          year: "numeric",
-        }),
-      };
+    const { error } = await submitApplication({
+      leave_type: leaveType,
+      start_date: fromDate,
+      end_date: toDate,
+      reason,
+      parent_contact: parentContact,
+    });
 
-      setMyApplications([newApplication, ...myApplications]);
-      onSubmit?.(newApplication);
+    setIsSubmitting(false);
 
-      // Reset form
-      setLeaveType("");
-      setFromDate("");
-      setToDate("");
-      setReason("");
-      setParentContact("");
-      setIsSubmitting(false);
-
+    if (error) {
       toast({
-        title: "Leave Application Submitted!",
-        description: "Your leave application has been sent to the admin for approval.",
+        title: "Error",
+        description: "Failed to submit leave application",
+        variant: "destructive",
       });
-    }, 800);
+      return;
+    }
+
+    // Reset form
+    setLeaveType("");
+    setFromDate("");
+    setToDate("");
+    setReason("");
+    setParentContact("");
+
+    toast({
+      title: "Leave Application Submitted!",
+      description: "Your leave application has been sent to the admin for approval.",
+    });
   };
 
   const getStatusBadge = (status: string) => {
@@ -129,6 +83,14 @@ export const LeaveLetterForm = ({ onSubmit }: LeaveLetterFormProps) => {
         return <Badge className="bg-destructive/10 text-destructive border-destructive/20">Rejected</Badge>;
       default:
         return <Badge className="bg-warning/10 text-warning border-warning/20">Pending</Badge>;
+    }
+  };
+
+  const formatDate = (dateStr: string) => {
+    try {
+      return format(new Date(dateStr), "MMM d, yyyy");
+    } catch {
+      return dateStr;
     }
   };
 
@@ -232,26 +194,32 @@ export const LeaveLetterForm = ({ onSubmit }: LeaveLetterFormProps) => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3 max-h-[500px] overflow-y-auto">
-          {myApplications.length === 0 ? (
+          {isLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+            </div>
+          ) : applications.length === 0 ? (
             <p className="text-center text-muted-foreground py-8">
               No leave applications submitted yet.
             </p>
           ) : (
-            myApplications.map((app) => (
+            applications.map((app) => (
               <div
                 key={app.id}
                 className="border rounded-lg p-4 space-y-2 hover:bg-accent/30 transition-colors"
               >
                 <div className="flex items-center justify-between">
-                  <span className="font-medium">{app.leaveType}</span>
+                  <span className="font-medium">{app.leave_type}</span>
                   {getStatusBadge(app.status)}
                 </div>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Calendar className="w-4 h-4" />
-                  {app.fromDate} to {app.toDate}
+                  {formatDate(app.start_date)} to {formatDate(app.end_date)}
                 </div>
                 <p className="text-sm text-muted-foreground line-clamp-2">{app.reason}</p>
-                <p className="text-xs text-muted-foreground">Submitted: {app.submittedAt}</p>
+                <p className="text-xs text-muted-foreground">
+                  Submitted: {formatDate(app.created_at)}
+                </p>
               </div>
             ))
           )}

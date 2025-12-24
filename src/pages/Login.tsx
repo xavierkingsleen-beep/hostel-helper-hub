@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,12 +6,25 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
 import { LogIn, ArrowLeft, Shield } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { signIn, user, isAdmin, isLoading: authLoading } = useAuth();
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (!authLoading && user) {
+      if (isAdmin) {
+        navigate("/admin-dashboard", { replace: true });
+      } else {
+        navigate("/student-dashboard", { replace: true });
+      }
+    }
+  }, [user, isAdmin, authLoading, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,26 +40,40 @@ const Login = () => {
 
     setIsLoading(true);
 
-    // Simulate login - Replace with actual authentication
-    setTimeout(() => {
+    const { error } = await signIn(email, password);
+
+    if (error) {
       setIsLoading(false);
+      let errorMessage = "Failed to sign in";
       
-      // Demo: Check if admin (you would replace this with actual auth logic)
-      if (email.includes("admin")) {
-        toast({
-          title: "Welcome Admin!",
-          description: "Redirecting to admin dashboard...",
-        });
-        navigate("/admin-dashboard");
-      } else {
-        toast({
-          title: "Welcome!",
-          description: "Redirecting to your dashboard...",
-        });
-        navigate("/student-dashboard");
+      if (error.message.includes("Invalid login credentials")) {
+        errorMessage = "Invalid email or password";
+      } else if (error.message.includes("Email not confirmed")) {
+        errorMessage = "Please confirm your email before signing in";
       }
-    }, 1000);
+      
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(false);
+    toast({
+      title: "Welcome!",
+      description: "Redirecting to your dashboard...",
+    });
   };
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6">
