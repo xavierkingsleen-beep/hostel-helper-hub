@@ -10,6 +10,7 @@ import { AdminNoticeManager } from "@/components/AdminNoticeManager";
 import { AdminModuleEditor } from "@/components/AdminModuleEditor";
 import { AdminLeaveManager } from "@/components/AdminLeaveManager";
 import { toast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import { LogOut, Settings, ClipboardList, Users, CheckCircle, Clock, Bell, LayoutGrid, FileText } from "lucide-react";
 
 interface Complaint {
@@ -74,6 +75,7 @@ const demoComplaints: Complaint[] = [
 const AdminDashboard = () => {
   const [complaints, setComplaints] = useState<Complaint[]>(demoComplaints);
   const navigate = useNavigate();
+  const { signOut } = useAuth();
 
   const stats = {
     total: complaints.length,
@@ -92,12 +94,13 @@ const AdminDashboard = () => {
     });
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await signOut();
     toast({
       title: "Logged out",
       description: "You have been logged out successfully.",
     });
-    navigate("/");
+    navigate("/", { replace: true });
   };
 
   return (

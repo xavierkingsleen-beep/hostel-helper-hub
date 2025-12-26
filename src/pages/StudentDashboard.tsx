@@ -11,6 +11,7 @@ import { NoticeBoard } from "@/components/NoticeBoard";
 import { DashboardModulesGrid } from "@/components/DashboardModules";
 import { LeaveLetterForm } from "@/components/LeaveLetterForm";
 import { toast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import { LogOut, Send, GraduationCap, Plus, List, FileText, LayoutGrid } from "lucide-react";
 
 interface Complaint {
@@ -62,6 +63,7 @@ const StudentDashboard = () => {
   const [complaints, setComplaints] = useState<Complaint[]>(demoComplaints);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
+  const { signOut } = useAuth();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -103,12 +105,13 @@ const StudentDashboard = () => {
     }, 800);
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await signOut();
     toast({
       title: "Logged out",
       description: "You have been logged out successfully.",
     });
-    navigate("/");
+    navigate("/", { replace: true });
   };
 
   return (
