@@ -111,10 +111,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
+    
+    // Immediately fetch user data after successful login
+    if (!error && data.user) {
+      await fetchUserData(data.user.id);
+    }
+    
     return { error: error as Error | null };
   };
 
