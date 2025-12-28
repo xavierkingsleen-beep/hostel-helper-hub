@@ -7,6 +7,7 @@ export interface LeaveApplication {
   id: string;
   student_id: string;
   student_name: string;
+  roll_number: string | null;
   room_number: string | null;
   phone: string | null;
   leave_type: string;
@@ -50,6 +51,9 @@ export const useLeaveApplications = () => {
   };
 
   const submitApplication = async (application: {
+    student_name: string;
+    roll_number: string;
+    room_number: string;
     leave_type: string;
     start_date: string;
     end_date: string;
@@ -60,17 +64,18 @@ export const useLeaveApplications = () => {
     if (!user) return { error: new Error("Not authenticated") };
 
     try {
-      // Fetch profile for student name and room
+      // Fetch profile for phone
       const { data: profile } = await supabase
         .from("profiles")
-        .select("full_name, room_number, phone")
+        .select("phone")
         .eq("id", user.id)
         .maybeSingle();
 
       const { error } = await supabase.from("leave_applications").insert({
         student_id: user.id,
-        student_name: profile?.full_name || user.email || "Unknown",
-        room_number: profile?.room_number,
+        student_name: application.student_name,
+        roll_number: application.roll_number,
+        room_number: application.room_number,
         phone: profile?.phone,
         leave_type: application.leave_type,
         start_date: application.start_date,
