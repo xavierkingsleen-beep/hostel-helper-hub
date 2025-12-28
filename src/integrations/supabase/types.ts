@@ -99,6 +99,7 @@ export type Database = {
           parent_contact: string | null
           phone: string | null
           reason: string
+          roll_number: string | null
           room_number: string | null
           start_date: string
           status: string
@@ -115,6 +116,7 @@ export type Database = {
           parent_contact?: string | null
           phone?: string | null
           reason: string
+          roll_number?: string | null
           room_number?: string | null
           start_date: string
           status?: string
@@ -131,6 +133,7 @@ export type Database = {
           parent_contact?: string | null
           phone?: string | null
           reason?: string
+          roll_number?: string | null
           room_number?: string | null
           start_date?: string
           status?: string
@@ -173,6 +176,7 @@ export type Database = {
           full_name: string
           id: string
           phone: string | null
+          roll_number: string | null
           room_number: string | null
           updated_at: string
         }
@@ -181,6 +185,7 @@ export type Database = {
           full_name: string
           id: string
           phone?: string | null
+          roll_number?: string | null
           room_number?: string | null
           updated_at?: string
         }
@@ -189,6 +194,7 @@ export type Database = {
           full_name?: string
           id?: string
           phone?: string | null
+          roll_number?: string | null
           room_number?: string | null
           updated_at?: string
         }

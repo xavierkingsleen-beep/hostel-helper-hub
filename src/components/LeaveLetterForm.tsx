@@ -20,6 +20,9 @@ const leaveTypes = [
 ];
 
 export const LeaveLetterForm = () => {
+  const [studentName, setStudentName] = useState("");
+  const [rollNumber, setRollNumber] = useState("");
+  const [roomNumber, setRoomNumber] = useState("");
   const [leaveType, setLeaveType] = useState("");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
@@ -32,10 +35,10 @@ export const LeaveLetterForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!leaveType || !fromDate || !toDate || !reason.trim() || !parentContact.trim()) {
+    if (!studentName.trim() || !rollNumber.trim() || !roomNumber.trim() || !leaveType || !fromDate || !toDate || !reason.trim() || !parentContact.trim()) {
       toast({
         title: "Error",
-        description: "Please fill in all fields",
+        description: "Please fill in all required fields",
         variant: "destructive",
       });
       return;
@@ -44,6 +47,9 @@ export const LeaveLetterForm = () => {
     setIsSubmitting(true);
 
     const { error } = await submitApplication({
+      student_name: studentName,
+      roll_number: rollNumber,
+      room_number: roomNumber,
       leave_type: leaveType,
       start_date: fromDate,
       end_date: toDate,
@@ -63,6 +69,9 @@ export const LeaveLetterForm = () => {
     }
 
     // Reset form
+    setStudentName("");
+    setRollNumber("");
+    setRoomNumber("");
     setLeaveType("");
     setFromDate("");
     setToDate("");
@@ -109,6 +118,37 @@ export const LeaveLetterForm = () => {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="studentName">Student Name *</Label>
+              <Input
+                id="studentName"
+                placeholder="Enter your full name"
+                value={studentName}
+                onChange={(e) => setStudentName(e.target.value)}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="rollNumber">Roll Number *</Label>
+                <Input
+                  id="rollNumber"
+                  placeholder="e.g., 21CS101"
+                  value={rollNumber}
+                  onChange={(e) => setRollNumber(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="roomNumber">Room Number *</Label>
+                <Input
+                  id="roomNumber"
+                  placeholder="e.g., A-101"
+                  value={roomNumber}
+                  onChange={(e) => setRoomNumber(e.target.value)}
+                />
+              </div>
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="leaveType">Leave Type</Label>
               <Select value={leaveType} onValueChange={setLeaveType}>
