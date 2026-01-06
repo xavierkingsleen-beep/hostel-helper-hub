@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,69 +10,12 @@ import { AdminModuleEditor } from "@/components/AdminModuleEditor";
 import { AdminLeaveManager } from "@/components/AdminLeaveManager";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
-import { LogOut, Settings, ClipboardList, Users, CheckCircle, Clock, Bell, LayoutGrid, FileText } from "lucide-react";
-
-interface Complaint {
-  id: string;
-  studentName: string;
-  roomNo: string;
-  category: string;
-  description: string;
-  status: "Pending" | "In Progress" | "Resolved";
-  createdAt: string;
-}
-
-// Demo complaints data for admin
-const demoComplaints: Complaint[] = [
-  {
-    id: "1",
-    studentName: "John Doe",
-    roomNo: "A-101",
-    category: "Electrical",
-    description: "The light in my room is not working properly, it keeps flickering.",
-    status: "In Progress",
-    createdAt: "Dec 15, 2024",
-  },
-  {
-    id: "2",
-    studentName: "Jane Smith",
-    roomNo: "B-205",
-    category: "Internet",
-    description: "WiFi connection is very slow in Block A, 3rd floor.",
-    status: "Pending",
-    createdAt: "Dec 14, 2024",
-  },
-  {
-    id: "3",
-    studentName: "Mike Johnson",
-    roomNo: "C-302",
-    category: "Cleaning",
-    description: "Common bathroom needs thorough cleaning.",
-    status: "Resolved",
-    createdAt: "Dec 10, 2024",
-  },
-  {
-    id: "4",
-    studentName: "Sarah Wilson",
-    roomNo: "A-115",
-    category: "Water",
-    description: "Low water pressure in the morning hours.",
-    status: "Pending",
-    createdAt: "Dec 16, 2024",
-  },
-  {
-    id: "5",
-    studentName: "Alex Brown",
-    roomNo: "D-410",
-    category: "Food",
-    description: "Food quality has decreased in the mess.",
-    status: "In Progress",
-    createdAt: "Dec 13, 2024",
-  },
-];
+import { useComplaints } from "@/hooks/useComplaints";
+import { LogOut, Settings, ClipboardList, Users, CheckCircle, Clock, Bell, LayoutGrid, FileText, Loader2 } from "lucide-react";
+import { format } from "date-fns";
 
 const AdminDashboard = () => {
-  const [complaints, setComplaints] = useState<Complaint[]>(demoComplaints);
+  const { complaints, isLoading, updateComplaintStatus } = useComplaints();
   const navigate = useNavigate();
   const { signOut } = useAuth();
 
@@ -84,14 +26,8 @@ const AdminDashboard = () => {
     resolved: complaints.filter((c) => c.status === "Resolved").length,
   };
 
-  const handleStatusChange = (id: string, newStatus: "Pending" | "In Progress" | "Resolved") => {
-    setComplaints(
-      complaints.map((c) => (c.id === id ? { ...c, status: newStatus } : c))
-    );
-    toast({
-      title: "Status Updated",
-      description: `Complaint status changed to ${newStatus}`,
-    });
+  const handleStatusChange = async (id: string, newStatus: "Pending" | "In Progress" | "Resolved") => {
+    await updateComplaintStatus(id, newStatus);
   };
 
   const handleLogout = async () => {
@@ -227,42 +163,57 @@ const AdminDashboard = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {complaints.map((complaint) => (
-                        <TableRow key={complaint.id} className="hover:bg-accent/50">
-                          <TableCell className="font-medium">{complaint.studentName}</TableCell>
-                          <TableCell>{complaint.roomNo}</TableCell>
-                          <TableCell>{complaint.category}</TableCell>
-                          <TableCell className="max-w-[250px] truncate">
-                            {complaint.description}
-                          </TableCell>
-                          <TableCell>
-                            <StatusBadge status={complaint.status} />
-                          </TableCell>
-                          <TableCell className="text-muted-foreground text-sm">
-                            {complaint.createdAt}
-                          </TableCell>
-                          <TableCell>
-                            <Select
-                              value={complaint.status}
-                              onValueChange={(value) =>
-                                handleStatusChange(
-                                  complaint.id,
-                                  value as "Pending" | "In Progress" | "Resolved"
-                                )
-                              }
-                            >
-                              <SelectTrigger className="w-[130px]">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="Pending">Pending</SelectItem>
-                                <SelectItem value="In Progress">In Progress</SelectItem>
-                                <SelectItem value="Resolved">Resolved</SelectItem>
-                              </SelectContent>
-                            </Select>
+                      {isLoading ? (
+                        <TableRow>
+                          <TableCell colSpan={7} className="text-center py-8">
+                            <Loader2 className="w-6 h-6 animate-spin mx-auto" />
+                            <p className="text-muted-foreground mt-2">Loading complaints...</p>
                           </TableCell>
                         </TableRow>
-                      ))}
+                      ) : complaints.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={7} className="text-center py-8">
+                            <p className="text-muted-foreground">No complaints found</p>
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        complaints.map((complaint) => (
+                          <TableRow key={complaint.id} className="hover:bg-accent/50">
+                            <TableCell className="font-medium">{complaint.student_name}</TableCell>
+                            <TableCell>{complaint.room_number || "-"}</TableCell>
+                            <TableCell>{complaint.category}</TableCell>
+                            <TableCell className="max-w-[250px] truncate">
+                              {complaint.description}
+                            </TableCell>
+                            <TableCell>
+                              <StatusBadge status={complaint.status} />
+                            </TableCell>
+                            <TableCell className="text-muted-foreground text-sm">
+                              {format(new Date(complaint.created_at), "MMM dd, yyyy")}
+                            </TableCell>
+                            <TableCell>
+                              <Select
+                                value={complaint.status}
+                                onValueChange={(value) =>
+                                  handleStatusChange(
+                                    complaint.id,
+                                    value as "Pending" | "In Progress" | "Resolved"
+                                  )
+                                }
+                              >
+                                <SelectTrigger className="w-[130px]">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="Pending">Pending</SelectItem>
+                                  <SelectItem value="In Progress">In Progress</SelectItem>
+                                  <SelectItem value="Resolved">Resolved</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
                     </TableBody>
                   </Table>
                 </div>
