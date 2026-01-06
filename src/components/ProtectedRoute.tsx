@@ -40,7 +40,7 @@ export const ProtectedRoute = ({ children, requireAdmin = false }: ProtectedRout
   if (requireAdmin && !isAdmin) {
     // If we already tried refreshing role once, then redirect.
     if (adminChecked) {
-      return <Navigate to="/student-dashboard" replace />;
+      return <Navigate to="/dashboard" replace />;
     }
 
     // Briefly show loader while role refresh happens.

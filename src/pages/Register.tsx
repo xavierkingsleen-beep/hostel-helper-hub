@@ -20,7 +20,7 @@ const Register = () => {
   // Redirect if already logged in
   useEffect(() => {
     if (!authLoading && user) {
-      navigate("/student-dashboard", { replace: true });
+      navigate("/dashboard", { replace: true });
     }
   }, [user, authLoading, navigate]);
 
@@ -75,7 +75,7 @@ const Register = () => {
       description: "Welcome to the hostel portal. Redirecting to your dashboard...",
     });
     
-    navigate("/student-dashboard");
+    navigate("/dashboard");
   };
 
   if (authLoading) {

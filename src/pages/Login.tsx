@@ -21,7 +21,7 @@ const Login = () => {
       if (isAdmin) {
         navigate("/admin-dashboard", { replace: true });
       } else {
-        navigate("/student-dashboard", { replace: true });
+        navigate("/dashboard", { replace: true });
       }
     }
   }, [user, isAdmin, authLoading, navigate]);
