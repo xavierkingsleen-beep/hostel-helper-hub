@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      complaints: {
+        Row: {
+          category: string
+          created_at: string
+          description: string
+          id: string
+          room_number: string | null
+          status: string
+          student_id: string
+          student_name: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description: string
+          id?: string
+          room_number?: string | null
+          status?: string
+          student_id: string
+          student_name: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string
+          id?: string
+          room_number?: string | null
+          status?: string
+          student_id?: string
+          student_name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       emergency_contacts: {
         Row: {
           created_at: string
