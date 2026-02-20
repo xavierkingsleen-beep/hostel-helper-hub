@@ -17,6 +17,7 @@ export interface LeaveApplication {
   parent_contact: string | null;
   address_during_leave: string | null;
   status: "Pending" | "Approved" | "Rejected";
+  reject_reason: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -95,19 +96,26 @@ export const useLeaveApplications = () => {
     }
   };
 
-  const updateApplicationStatus = async (id: string, status: "Pending" | "Approved" | "Rejected") => {
+  const updateApplicationStatus = async (id: string, status: "Pending" | "Approved" | "Rejected", reject_reason?: string) => {
     if (!isAdmin) return { error: new Error("Unauthorized") };
 
     try {
+      const updateData: { status: string; reject_reason?: string | null } = { status };
+      if (status === "Rejected") {
+        updateData.reject_reason = reject_reason || null;
+      } else {
+        updateData.reject_reason = null;
+      }
+
       const { error } = await supabase
         .from("leave_applications")
-        .update({ status })
+        .update(updateData)
         .eq("id", id);
 
       if (error) throw error;
 
       setApplications(applications.map(app => 
-        app.id === id ? { ...app, status } : app
+        app.id === id ? { ...app, status, reject_reason: updateData.reject_reason ?? null } : app
       ));
       return { error: null };
     } catch (error) {

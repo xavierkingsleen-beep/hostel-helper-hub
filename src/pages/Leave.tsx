@@ -65,6 +65,12 @@ export default function Leave() {
                         </div>
                         <StatusBadge status={application.status as "Pending" | "In Progress" | "Resolved"} />
                       </div>
+                      {application.status === "Rejected" && application.reject_reason && (
+                        <div className="mt-3 rounded-lg border border-destructive/30 bg-destructive/5 p-3">
+                          <p className="text-sm font-medium text-destructive">Rejection Reason</p>
+                          <p className="text-sm text-foreground mt-1">{application.reject_reason}</p>
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 ))
