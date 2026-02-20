@@ -1,8 +1,11 @@
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
 import { FileText, CheckCircle, XCircle, Clock, Eye } from "lucide-react";
 import {
@@ -12,14 +15,25 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { useLeaveApplications, LeaveApplication } from "@/hooks/useLeaveApplications";
 import { format } from "date-fns";
 
 export const AdminLeaveManager = () => {
   const { applications, isLoading, updateApplicationStatus } = useLeaveApplications();
+  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+  const [rejectingAppId, setRejectingAppId] = useState<string | null>(null);
+  const [rejectReason, setRejectReason] = useState("");
 
   const handleStatusChange = async (id: string, newStatus: "Pending" | "Approved" | "Rejected") => {
+    if (newStatus === "Rejected") {
+      setRejectingAppId(id);
+      setRejectReason("");
+      setRejectDialogOpen(true);
+      return;
+    }
+
     const { error } = await updateApplicationStatus(id, newStatus);
     
     if (error) {
@@ -35,6 +49,29 @@ export const AdminLeaveManager = () => {
       title: "Status Updated",
       description: `Leave application ${newStatus.toLowerCase()}`,
     });
+  };
+
+  const handleConfirmReject = async () => {
+    if (!rejectingAppId) return;
+
+    const { error } = await updateApplicationStatus(rejectingAppId, "Rejected", rejectReason);
+    
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to reject application",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    toast({
+      title: "Application Rejected",
+      description: "The leave application has been rejected with a reason.",
+    });
+    setRejectDialogOpen(false);
+    setRejectingAppId(null);
+    setRejectReason("");
   };
 
   const getStatusBadge = (status: string) => {
@@ -214,6 +251,12 @@ export const AdminLeaveManager = () => {
                                   <p className="text-sm text-muted-foreground">Reason</p>
                                   <p className="font-medium">{app.reason}</p>
                                 </div>
+                                {app.status === "Rejected" && app.reject_reason && (
+                                  <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3">
+                                    <p className="text-sm font-medium text-destructive">Rejection Reason</p>
+                                    <p className="text-sm text-foreground mt-1">{app.reject_reason}</p>
+                                  </div>
+                                )}
                               </div>
                             </DialogContent>
                           </Dialog>
@@ -245,6 +288,41 @@ export const AdminLeaveManager = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Reject Reason Dialog */}
+      <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reject Leave Application</DialogTitle>
+            <DialogDescription>
+              Please provide a reason for rejecting this leave application. The student will see this reason.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="rejectReason">Rejection Reason *</Label>
+            <Textarea
+              id="rejectReason"
+              placeholder="Enter the reason for rejection..."
+              value={rejectReason}
+              onChange={(e) => setRejectReason(e.target.value)}
+              rows={4}
+              className="resize-none"
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRejectDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleConfirmReject}
+              disabled={!rejectReason.trim()}
+            >
+              Confirm Rejection
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

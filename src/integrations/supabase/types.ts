@@ -135,6 +135,7 @@ export type Database = {
           parent_contact: string | null
           phone: string | null
           reason: string
+          reject_reason: string | null
           roll_number: string | null
           room_number: string | null
           start_date: string
@@ -152,6 +153,7 @@ export type Database = {
           parent_contact?: string | null
           phone?: string | null
           reason: string
+          reject_reason?: string | null
           roll_number?: string | null
           room_number?: string | null
           start_date: string
@@ -169,6 +171,7 @@ export type Database = {
           parent_contact?: string | null
           phone?: string | null
           reason?: string
+          reject_reason?: string | null
           roll_number?: string | null
           room_number?: string | null
           start_date?: string

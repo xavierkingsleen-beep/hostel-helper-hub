@@ -257,6 +257,12 @@ export const LeaveLetterForm = () => {
                   {formatDate(app.start_date)} to {formatDate(app.end_date)}
                 </div>
                 <p className="text-sm text-muted-foreground line-clamp-2">{app.reason}</p>
+                {app.status === "Rejected" && app.reject_reason && (
+                  <div className="mt-2 rounded-lg border border-destructive/30 bg-destructive/5 p-2">
+                    <p className="text-xs font-medium text-destructive">Rejection Reason</p>
+                    <p className="text-xs text-foreground mt-0.5">{app.reject_reason}</p>
+                  </div>
+                )}
                 <p className="text-xs text-muted-foreground">
                   Submitted: {formatDate(app.created_at)}
                 </p>

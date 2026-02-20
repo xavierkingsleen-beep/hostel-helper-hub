@@ -1,0 +1,1 @@
+ALTER TABLE public.leave_applications ADD COLUMN reject_reason text DEFAULT NULL;
