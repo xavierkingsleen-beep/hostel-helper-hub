@@ -20,6 +20,7 @@ export type Database = {
           created_at: string
           description: string
           id: string
+          resolution_reason: string | null
           room_number: string | null
           status: string
           student_id: string
@@ -31,6 +32,7 @@ export type Database = {
           created_at?: string
           description: string
           id?: string
+          resolution_reason?: string | null
           room_number?: string | null
           status?: string
           student_id: string
@@ -42,6 +44,7 @@ export type Database = {
           created_at?: string
           description?: string
           id?: string
+          resolution_reason?: string | null
           room_number?: string | null
           status?: string
           student_id?: string

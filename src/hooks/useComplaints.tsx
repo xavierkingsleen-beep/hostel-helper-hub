@@ -11,6 +11,7 @@ export interface Complaint {
   category: string;
   description: string;
   status: "Pending" | "In Progress" | "Resolved";
+  resolution_reason: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -92,18 +93,26 @@ export function useComplaints() {
 
   const updateComplaintStatus = async (
     id: string,
-    status: "Pending" | "In Progress" | "Resolved"
+    status: "Pending" | "In Progress" | "Resolved",
+    resolution_reason?: string
   ) => {
     try {
+      const updateData: { status: string; resolution_reason?: string | null } = { status };
+      if (status === "Resolved") {
+        updateData.resolution_reason = resolution_reason || null;
+      } else {
+        updateData.resolution_reason = null;
+      }
+
       const { error } = await supabase
         .from("complaints")
-        .update({ status })
+        .update(updateData)
         .eq("id", id);
 
       if (error) throw error;
 
       setComplaints((prev) =>
-        prev.map((c) => (c.id === id ? { ...c, status } : c))
+        prev.map((c) => (c.id === id ? { ...c, status, resolution_reason: updateData.resolution_reason ?? null } : c))
       );
 
       toast({

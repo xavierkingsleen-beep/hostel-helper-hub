@@ -183,6 +183,12 @@ export default function Complaints() {
                           <p className="text-sm text-muted-foreground mb-3">
                             {complaint.description}
                           </p>
+                          {complaint.status === "Resolved" && complaint.resolution_reason && (
+                            <div className="bg-accent/50 border border-accent rounded-lg p-3 mb-3">
+                              <p className="text-sm font-medium text-foreground">Resolution Note</p>
+                              <p className="text-sm text-muted-foreground mt-1">{complaint.resolution_reason}</p>
+                            </div>
+                          )}
                           <p className="text-xs text-muted-foreground">
                             Submitted: {format(new Date(complaint.created_at), "MMM dd, yyyy")}
                           </p>

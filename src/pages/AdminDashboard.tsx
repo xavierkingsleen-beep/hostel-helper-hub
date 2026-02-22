@@ -1,9 +1,13 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { StatusBadge } from "@/components/StatusBadge";
 import { AdminNoticeManager } from "@/components/AdminNoticeManager";
 import { AdminModuleEditor } from "@/components/AdminModuleEditor";
@@ -26,8 +30,26 @@ const AdminDashboard = () => {
     resolved: complaints.filter((c) => c.status === "Resolved").length,
   };
 
+  const [resolveDialogOpen, setResolveDialogOpen] = useState(false);
+  const [selectedComplaintId, setSelectedComplaintId] = useState<string | null>(null);
+  const [resolutionReason, setResolutionReason] = useState("");
+
   const handleStatusChange = async (id: string, newStatus: "Pending" | "In Progress" | "Resolved") => {
+    if (newStatus === "Resolved") {
+      setSelectedComplaintId(id);
+      setResolutionReason("");
+      setResolveDialogOpen(true);
+      return;
+    }
     await updateComplaintStatus(id, newStatus);
+  };
+
+  const handleConfirmResolve = async () => {
+    if (!selectedComplaintId) return;
+    await updateComplaintStatus(selectedComplaintId, "Resolved", resolutionReason);
+    setResolveDialogOpen(false);
+    setSelectedComplaintId(null);
+    setResolutionReason("");
   };
 
   const handleLogout = async () => {
@@ -233,6 +255,36 @@ const AdminDashboard = () => {
             <AdminLeaveManager />
           </TabsContent>
         </Tabs>
+
+        {/* Resolve Complaint Dialog */}
+        <Dialog open={resolveDialogOpen} onOpenChange={setResolveDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Resolve Complaint</DialogTitle>
+              <DialogDescription>
+                Provide a resolution note so the student knows how their complaint was addressed.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-2">
+              <Label htmlFor="resolution-reason">Resolution Note</Label>
+              <Textarea
+                id="resolution-reason"
+                placeholder="Describe how the issue was resolved..."
+                value={resolutionReason}
+                onChange={(e) => setResolutionReason(e.target.value)}
+                rows={3}
+              />
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setResolveDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleConfirmResolve}>
+                Confirm Resolution
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

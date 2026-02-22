@@ -1,0 +1,1 @@
+ALTER TABLE public.complaints ADD COLUMN resolution_reason text DEFAULT NULL;
