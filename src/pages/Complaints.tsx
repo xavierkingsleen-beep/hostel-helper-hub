@@ -1,15 +1,16 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { StudentLayout } from "@/components/StudentLayout";
 import { StatusBadge } from "@/components/StatusBadge";
 import { useComplaints } from "@/hooks/useComplaints";
 import { useAuth } from "@/hooks/useAuth";
-import { Send, Plus, List, Loader2 } from "lucide-react";
+import { Send, Plus, List, Loader2, Camera, X } from "lucide-react";
 import { format } from "date-fns";
 
 const categories = [
@@ -29,6 +30,10 @@ export default function Complaints() {
   const [studentName, setStudentName] = useState("");
   const [roomNumber, setRoomNumber] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [viewImageUrl, setViewImageUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { complaints, isLoading, submitComplaint } = useComplaints();
   const { profile } = useAuth();
@@ -41,6 +46,24 @@ export default function Complaints() {
     }
   });
 
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (!file.type.startsWith("image/")) {
+        return;
+      }
+      setSelectedFile(file);
+      setPreviewUrl(URL.createObjectURL(file));
+    }
+  };
+
+  const clearFile = () => {
+    setSelectedFile(null);
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setPreviewUrl(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -49,10 +72,11 @@ export default function Complaints() {
     }
 
     setIsSubmitting(true);
-    const success = await submitComplaint(category, description, studentName, roomNumber);
+    const success = await submitComplaint(category, description, studentName, roomNumber, selectedFile || undefined);
     if (success) {
       setCategory("");
       setDescription("");
+      clearFile();
     }
     setIsSubmitting(false);
   };
@@ -127,6 +151,45 @@ export default function Complaints() {
                     className="resize-none"
                   />
                 </div>
+
+                {/* Image Upload */}
+                <div className="space-y-2">
+                  <Label>Attach Photo (optional)</Label>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileSelect}
+                    className="hidden"
+                  />
+                  {previewUrl ? (
+                    <div className="relative inline-block">
+                      <img
+                        src={previewUrl}
+                        alt="Preview"
+                        className="w-32 h-32 object-cover rounded-lg border border-border"
+                      />
+                      <button
+                        type="button"
+                        onClick={clearFile}
+                        className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ) : (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="w-full border-dashed"
+                    >
+                      <Camera className="w-4 h-4 mr-2" />
+                      Add Photo
+                    </Button>
+                  )}
+                </div>
+
                 <Button
                   type="submit"
                   className="w-full"
@@ -183,6 +246,14 @@ export default function Complaints() {
                           <p className="text-sm text-muted-foreground mb-3">
                             {complaint.description}
                           </p>
+                          {complaint.image_url && (
+                            <img
+                              src={complaint.image_url}
+                              alt="Complaint photo"
+                              className="w-20 h-20 object-cover rounded-lg border border-border mb-3 cursor-pointer hover:opacity-80 transition-opacity"
+                              onClick={() => setViewImageUrl(complaint.image_url)}
+                            />
+                          )}
                           {complaint.status === "Resolved" && complaint.resolution_reason && (
                             <div className="bg-accent/50 border border-accent rounded-lg p-3 mb-3">
                               <p className="text-sm font-medium text-foreground">Resolution Note</p>
@@ -203,6 +274,15 @@ export default function Complaints() {
           </Card>
         </div>
       </div>
+
+      {/* Full-size image viewer dialog */}
+      <Dialog open={!!viewImageUrl} onOpenChange={() => setViewImageUrl(null)}>
+        <DialogContent className="max-w-3xl">
+          {viewImageUrl && (
+            <img src={viewImageUrl} alt="Complaint photo" className="w-full rounded-lg" />
+          )}
+        </DialogContent>
+      </Dialog>
     </StudentLayout>
   );
 }
