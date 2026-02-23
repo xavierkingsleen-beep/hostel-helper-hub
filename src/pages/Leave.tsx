@@ -17,7 +17,7 @@ export default function Leave() {
           <p className="text-muted-foreground">Apply for leave and track your applications</p>
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-6">
+        <div className="space-y-6">
           {/* Leave Form */}
           <LeaveLetterForm />
 
