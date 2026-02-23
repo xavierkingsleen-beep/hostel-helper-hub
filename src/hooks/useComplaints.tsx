@@ -12,6 +12,7 @@ export interface Complaint {
   description: string;
   status: "Pending" | "In Progress" | "Resolved";
   resolution_reason: string | null;
+  image_url: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -50,7 +51,8 @@ export function useComplaints() {
     category: string,
     description: string,
     studentName: string,
-    roomNumber: string
+    roomNumber: string,
+    imageFile?: File
   ) => {
     if (!user) {
       toast({
@@ -62,6 +64,25 @@ export function useComplaints() {
     }
 
     try {
+      let image_url: string | null = null;
+
+      if (imageFile) {
+        const fileExt = imageFile.name.split(".").pop();
+        const filePath = `${user.id}/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from("complaint-images")
+          .upload(filePath, imageFile);
+
+        if (uploadError) throw uploadError;
+
+        const { data: urlData } = supabase.storage
+          .from("complaint-images")
+          .getPublicUrl(filePath);
+
+        image_url = urlData.publicUrl;
+      }
+
       const { error } = await supabase.from("complaints").insert({
         student_id: user.id,
         student_name: studentName,
@@ -69,6 +90,7 @@ export function useComplaints() {
         category,
         description,
         status: "Pending",
+        image_url,
       });
 
       if (error) throw error;

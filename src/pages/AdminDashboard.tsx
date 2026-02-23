@@ -15,8 +15,9 @@ import { AdminLeaveManager } from "@/components/AdminLeaveManager";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useComplaints } from "@/hooks/useComplaints";
-import { LogOut, Settings, ClipboardList, Users, CheckCircle, Clock, Bell, LayoutGrid, FileText, Loader2 } from "lucide-react";
+import { LogOut, Settings, ClipboardList, Users, CheckCircle, Clock, Bell, LayoutGrid, FileText, Loader2, Image } from "lucide-react";
 import { format } from "date-fns";
+
 
 const AdminDashboard = () => {
   const { complaints, isLoading, updateComplaintStatus } = useComplaints();
@@ -33,6 +34,7 @@ const AdminDashboard = () => {
   const [resolveDialogOpen, setResolveDialogOpen] = useState(false);
   const [selectedComplaintId, setSelectedComplaintId] = useState<string | null>(null);
   const [resolutionReason, setResolutionReason] = useState("");
+  const [viewImageUrl, setViewImageUrl] = useState<string | null>(null);
 
   const handleStatusChange = async (id: string, newStatus: "Pending" | "In Progress" | "Resolved") => {
     if (newStatus === "Resolved") {
@@ -179,6 +181,7 @@ const AdminDashboard = () => {
                         <TableHead>Room</TableHead>
                         <TableHead>Category</TableHead>
                         <TableHead className="min-w-[200px]">Description</TableHead>
+                        <TableHead>Photo</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead>Date</TableHead>
                         <TableHead>Action</TableHead>
@@ -187,14 +190,14 @@ const AdminDashboard = () => {
                     <TableBody>
                       {isLoading ? (
                         <TableRow>
-                          <TableCell colSpan={7} className="text-center py-8">
+                         <TableCell colSpan={8} className="text-center py-8">
                             <Loader2 className="w-6 h-6 animate-spin mx-auto" />
                             <p className="text-muted-foreground mt-2">Loading complaints...</p>
                           </TableCell>
                         </TableRow>
                       ) : complaints.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={7} className="text-center py-8">
+                          <TableCell colSpan={8} className="text-center py-8">
                             <p className="text-muted-foreground">No complaints found</p>
                           </TableCell>
                         </TableRow>
@@ -206,6 +209,18 @@ const AdminDashboard = () => {
                             <TableCell>{complaint.category}</TableCell>
                             <TableCell className="max-w-[250px] truncate">
                               {complaint.description}
+                            </TableCell>
+                            <TableCell>
+                              {complaint.image_url ? (
+                                <img
+                                  src={complaint.image_url}
+                                  alt="Complaint"
+                                  className="w-10 h-10 object-cover rounded border border-border cursor-pointer hover:opacity-80"
+                                  onClick={() => setViewImageUrl(complaint.image_url)}
+                                />
+                              ) : (
+                                <span className="text-muted-foreground text-xs">—</span>
+                              )}
                             </TableCell>
                             <TableCell>
                               <StatusBadge status={complaint.status} />
@@ -283,6 +298,15 @@ const AdminDashboard = () => {
                 Confirm Resolution
               </Button>
             </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Image Viewer Dialog */}
+        <Dialog open={!!viewImageUrl} onOpenChange={() => setViewImageUrl(null)}>
+          <DialogContent className="max-w-3xl">
+            {viewImageUrl && (
+              <img src={viewImageUrl} alt="Complaint photo" className="w-full rounded-lg" />
+            )}
           </DialogContent>
         </Dialog>
       </div>
