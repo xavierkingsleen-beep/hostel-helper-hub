@@ -1,26 +1,37 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
-import { LogIn, ArrowLeft, ShieldCheck, Lock } from "lucide-react";
+import { LogIn, ArrowLeft, ShieldCheck } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 const AdminLogin = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [adminCode, setAdminCode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { signIn, user, isAdmin, isLoading: authLoading } = useAuth();
+
+  useEffect(() => {
+    if (user && !authLoading) {
+      if (isAdmin) {
+        navigate("/admin-dashboard", { replace: true });
+      } else {
+        navigate("/dashboard", { replace: true });
+      }
+    }
+  }, [user, isAdmin, authLoading, navigate]);
 
   const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!email || !password || !adminCode) {
+    if (!email || !password) {
       toast({
         title: "Error",
-        description: "Please fill in all fields including admin code",
+        description: "Please fill in all fields",
         variant: "destructive",
       });
       return;
@@ -28,27 +39,32 @@ const AdminLogin = () => {
 
     setIsLoading(true);
 
-    // Demo admin credentials - Replace with actual authentication
-    // In production, this should be validated server-side
-    setTimeout(() => {
-      setIsLoading(false);
-      
-      // Demo: Check admin credentials (replace with real auth)
-      if (adminCode === "ADMIN123" && email && password) {
-        toast({
-          title: "Welcome Admin!",
-          description: "Access granted. Redirecting to admin dashboard...",
-        });
-        navigate("/admin-dashboard");
-      } else {
-        toast({
-          title: "Access Denied",
-          description: "Invalid admin credentials. Please check your admin code.",
-          variant: "destructive",
-        });
-      }
-    }, 1000);
+    const { error } = await signIn(email, password);
+    setIsLoading(false);
+
+    if (error) {
+      toast({
+        title: "Access Denied",
+        description: error.message === "Invalid login credentials"
+          ? "Invalid email or password. Please try again."
+          : error.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Welcome!",
+        description: "Login successful. Redirecting...",
+      });
+    }
   };
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-gradient-to-br from-background via-background to-primary/5">
@@ -95,27 +111,9 @@ const AdminLogin = () => {
                   required
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="adminCode" className="flex items-center gap-2">
-                  <Lock className="w-3 h-3" />
-                  Admin Access Code
-                </Label>
-                <Input
-                  id="adminCode"
-                  type="password"
-                  placeholder="Enter admin code"
-                  value={adminCode}
-                  onChange={(e) => setAdminCode(e.target.value)}
-                  required
-                  className="font-mono"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Demo code: ADMIN123
-                </p>
-              </div>
               <Button type="submit" className="w-full" size="lg" disabled={isLoading}>
                 {isLoading ? (
-                  "Verifying..."
+                  "Signing in..."
                 ) : (
                   <>
                     <LogIn className="w-4 h-4" />

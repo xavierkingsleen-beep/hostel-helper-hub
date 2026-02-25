@@ -60,7 +60,7 @@ const Index = () => {
             {/* Admin Login Link */}
             <div className="pt-2 border-t border-border">
               <Button asChild variant="ghost" className="w-full" size="sm">
-                <Link to="/admin-login" className="text-muted-foreground hover:text-foreground">
+                <Link to="/login" className="text-muted-foreground hover:text-foreground">
                   <ShieldCheck className="w-4 h-4 mr-2" />
                   Admin Portal
                 </Link>
