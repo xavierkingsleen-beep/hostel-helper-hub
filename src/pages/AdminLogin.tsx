@@ -27,7 +27,7 @@ const AdminLogin = () => {
 
   const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!email || !password) {
       toast({
         title: "Error",
@@ -45,9 +45,10 @@ const AdminLogin = () => {
     if (error) {
       toast({
         title: "Access Denied",
-        description: error.message === "Invalid login credentials"
-          ? "Invalid email or password. Please try again."
-          : error.message,
+        description:
+          error.message === "Invalid login credentials"
+            ? "Invalid email or password. Please try again."
+            : error.message,
         variant: "destructive",
       });
     } else {
@@ -69,8 +70,8 @@ const AdminLogin = () => {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-gradient-to-br from-background via-background to-primary/5">
       <div className="w-full max-w-md">
-        <Link 
-          to="/" 
+        <Link
+          to="/"
           className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
@@ -90,9 +91,9 @@ const AdminLogin = () => {
           <CardContent>
             <form onSubmit={handleAdminLogin} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Admin Email</Label>
+                <Label htmlFor="admin-email">Admin Email</Label>
                 <Input
-                  id="email"
+                  id="admin-email"
                   type="email"
                   placeholder="admin@hostel.com"
                   value={email}
@@ -101,9 +102,9 @@ const AdminLogin = () => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="admin-password">Password</Label>
                 <Input
-                  id="password"
+                  id="admin-password"
                   type="password"
                   placeholder="••••••••"
                   value={password}
