@@ -12,6 +12,7 @@ import Dashboard from "./pages/Dashboard";
 import Complaints from "./pages/Complaints";
 import Leave from "./pages/Leave";
 import Profile from "./pages/Profile";
+import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
 
@@ -72,7 +73,7 @@ const App = () => (
             />
             {/* Redirects for old routes */}
             <Route path="/student-dashboard" element={<Navigate to="/dashboard" replace />} />
-            <Route path="/admin-login" element={<Navigate to="/login" replace />} />
+            <Route path="/admin-login" element={<AdminLogin />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
