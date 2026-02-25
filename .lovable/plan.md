@@ -1,36 +1,29 @@
 
-## Add Photo Upload to Complaints
 
-Allow students to attach a photo/image when submitting a complaint, and display the image in both the student's complaint list and the admin dashboard.
+## Fix Login Issues: Student Login and Admin Login
 
-### What Changes
+After investigating the code and testing the login flow, I found two distinct problems:
 
-1. **Create a storage bucket** for complaint images via a database migration
-2. **Add an `image_url` column** to the `complaints` table to store the uploaded image path
-3. **Update the complaint form** (`src/pages/Complaints.tsx`) with a file input for selecting and previewing an image before submitting
-4. **Update the complaint hook** (`src/hooks/useComplaints.tsx`) to handle uploading the image to storage and saving the URL when submitting a complaint
-5. **Show the image in the student complaint list** (`src/pages/Complaints.tsx`) as a clickable thumbnail under the description
-6. **Show the image in the admin complaints table** (`src/pages/AdminDashboard.tsx`) with a new "Photo" column displaying a thumbnail that can be clicked to view full size
+### Problem 1: Admin Login Page uses fake/demo authentication
+The **Admin Login page** (`/admin-login`) does NOT use real authentication at all. It uses a hardcoded `setTimeout` with a demo code `"ADMIN123"` and never actually signs the user in with the backend. This means even if the admin enters correct credentials, they are not authenticated and will be immediately kicked out by the `ProtectedRoute` on the admin dashboard.
 
-### Technical Details
+### Problem 2: Admin Login route redirects to Student Login
+In `App.tsx` (line 62), the route `/admin-login` is set to `<Navigate to="/login" replace />`, which means clicking "Admin Portal" on the home page takes you to the student login page instead of the admin login page. The `AdminLogin.tsx` component exists but is never actually shown.
 
-**Database migration (SQL):**
-- Add `image_url text DEFAULT NULL` column to `complaints` table
-- Create a `complaint-images` storage bucket (public)
-- Add RLS policies on `storage.objects` so authenticated students can upload to the bucket and anyone authenticated can view images
+### Fix
 
-**`src/hooks/useComplaints.tsx`:**
-- Update `Complaint` interface to include `image_url: string | null`
-- Modify `submitComplaint` to accept an optional `File` parameter
-- If a file is provided, upload it to `complaint-images` bucket with a unique path (`{user_id}/{timestamp}_{filename}`), get the public URL, and include `image_url` in the insert
+**1. `src/App.tsx`**
+- Remove the redirect from `/admin-login` to `/login` (line 62)
+- Instead, keep `/admin-login` but have it also use the real Login page (or point to a fixed admin login)
+- Actually, the simplest and most correct fix: both students and admins should use the **same** `/login` page since the auth system already detects admin roles and redirects accordingly. Update the Index page's "Admin Portal" link to point to `/login` instead of `/admin-login`.
 
-**`src/pages/Complaints.tsx`:**
-- Add file input state (`selectedFile`, `previewUrl`)
-- Add an image upload area below the description field with a camera/image icon
-- Show a small preview of the selected image before submission
-- Clear the file on successful submit
-- In the complaints list, render the image as a small thumbnail if `image_url` exists
+**2. `src/pages/Index.tsx`**
+- Change the Admin Portal link from `/admin-login` to `/login` so admins use the same real login page.
 
-**`src/pages/AdminDashboard.tsx`:**
-- Add a "Photo" column to the complaints table
-- Display a small thumbnail if `image_url` exists, clickable to view full size in a dialog
+**3. `src/pages/AdminLogin.tsx`**
+- Replace the fake demo authentication with real backend authentication using `useAuth().signIn()`, exactly like the student login page does.
+- Remove the hardcoded admin code field since admin roles are managed in the database.
+- After successful sign-in, check `isAdmin` to redirect to `/admin-dashboard`.
+
+This way, both student and admin logins use real authentication. The system already knows who is an admin based on the `user_roles` table and redirects them appropriately.
+
